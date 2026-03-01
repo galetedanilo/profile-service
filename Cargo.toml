@@ -8,6 +8,8 @@ async-trait = "0.1.89"
 axum = "0.8.8"
 lazy_static = "1.5.0"
 regex = "1.12.3"
+serde = { version = "1.0.228", features = ["derive"] }
 thiserror = "2.0.18"
 tokio = { version = "1.49.0", features = ["full"] }
 uuid = { version = "1.21.0", features = ["v7"] }
+validify = "2.0.0"
