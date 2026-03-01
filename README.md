@@ -25,10 +25,11 @@ src/
 ## 🚀 Tecnologias Principais
 
 - **Linguagem:** [Rust](https://www.rust-lang.org)
-- **Framework Web:** [Axum](https://github.com)
+- **Framework Web:** [Axum](https://github.com/tokio-rs/axum)
 - **Runtime:** [Tokio](https://tokio.rs)
 - **Banco de Dados:** [MongoDB](https://www.mongodb.com) (Pendente implementação)
 - **Serialização:** [Serde](https://serde.rs) (Pendente implementação)
+- **Validação:** [Validify](https://github.com/biblius/validify) (Validação e transformação de dados de entrada)
 
 ## 📋 Status dos Endpoints (API)
 
