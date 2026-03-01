@@ -16,6 +16,9 @@ pub struct Profile {
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Error)]
 pub enum ProfileError {
+    #[error("Profile with id {0} already exists")]
+    AlreadyExists(String),
+
     #[error("Invalid profile data: {0}")]
     InvalidData(String),
 

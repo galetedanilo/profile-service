@@ -1,3 +1,4 @@
+pub mod application;
 pub mod domain;
 
 #[tokio::main]
