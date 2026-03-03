@@ -25,6 +25,9 @@ pub enum ProfileError {
     #[error("Profile not found with id: {0}")]
     NotFound(String),
 
+    #[error("Repository error: {0}")]
+    RepositoryError(String),
+
     #[error("Unknown error: {0}")]
     Unknown(String),
 }
