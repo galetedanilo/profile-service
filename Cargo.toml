@@ -13,3 +13,7 @@ thiserror = "2.0.18"
 tokio = { version = "1.49.0", features = ["full"] }
 uuid = { version = "1.21.0", features = ["v7"] }
 validify = "2.0.0"
+
+[dev-dependencies]
+mockall = "0.14.0"
+fake = "4.4.0"
