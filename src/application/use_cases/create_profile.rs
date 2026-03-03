@@ -36,7 +36,7 @@ impl<R: ProfileRepository + Send + Sync> CreateProfileUseCase<R> {
         self.repository
             .save(&profile)
             .await
-            .map_err(|e| ProfileError::InvalidData(e.to_string()))?;
+            .map_err(|e| ProfileError::RepositoryError(e.to_string()))?;
 
         Ok(())
     }
@@ -128,8 +128,6 @@ mod tests {
             id: Uuid::now_v7().to_string(),
             email: FreeEmail().fake(),
         };
-
-        let profile = Profile::new(Id::generate(), Email::try_new(FreeEmail().fake()).unwrap());
 
         mock_repo
             .expect_get_profile_by_id()
