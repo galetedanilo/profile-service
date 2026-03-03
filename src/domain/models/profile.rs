@@ -30,21 +30,14 @@ pub enum ProfileError {
 }
 
 impl Profile {
-    pub fn new(
-        id: Id,
-        email: Email,
-        first_name: Option<FirstName>,
-        last_name: Option<LastName>,
-        bio: Option<Bio>,
-        profile_image_url: Option<ImageUrl>,
-    ) -> Self {
+    pub fn new(id: Id, email: Email) -> Self {
         Self {
             id,
             email,
-            first_name,
-            last_name,
-            bio,
-            profile_image_url,
+            first_name: None,
+            last_name: None,
+            bio: None,
+            profile_image_url: None,
         }
     }
 
