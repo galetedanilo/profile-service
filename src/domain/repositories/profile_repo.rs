@@ -1,5 +1,7 @@
-use mockall::automock;
 use thiserror::Error;
+
+#[cfg(test)]
+use mockall::automock;
 
 use crate::domain::{models::profile::Profile, object_values::id::Id};
 
