@@ -246,12 +246,24 @@ mod tests {
 
         let updated_profile = result.unwrap().unwrap();
 
-        // assert_eq!(updated_profile.first_name().to_string(), "Jane");
-        // assert_eq!(updated_profile.last_name().to_string(), "Smith");
-        // assert_eq!(updated_profile.bio().to_string(), "Hi, I'm Jane!");
-        // assert_eq!(
-        //     updated_profile.profile_image_url().to_string(),
-        //     "http://example.com/new_profile.jpg"
-        // );
+        assert_eq!(
+            updated_profile.first_name().map(|e| e.to_string()).unwrap(),
+            "Jane"
+        );
+        assert_eq!(
+            updated_profile.last_name().map(|e| e.to_string()).unwrap(),
+            "Smith"
+        );
+        assert_eq!(
+            updated_profile.bio().map(|e| e.to_string()).unwrap(),
+            "Hi, I'm Jane!"
+        );
+        assert_eq!(
+            updated_profile
+                .profile_image_url()
+                .map(|e| e.to_string())
+                .unwrap(),
+            "http://example.com/new_profile.jpg"
+        );
     }
 }
