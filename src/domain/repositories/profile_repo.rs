@@ -1,7 +1,9 @@
+use mockall::automock;
 use thiserror::Error;
 
 use crate::domain::{models::profile::Profile, object_values::id::Id};
 
+#[cfg_attr(test, automock)]
 #[async_trait::async_trait]
 pub trait ProfileRepository {
     async fn save(&self, profile: &Profile) -> Result<(), ProfileRepositoryError>;
