@@ -67,4 +67,38 @@ impl Profile {
     pub fn profile_image_url(&self) -> Option<&ImageUrl> {
         self.profile_image_url.as_ref()
     }
+
+    pub fn update_first_name(&mut self, first_name: FirstName) {
+        self.first_name = Some(first_name);
+    }
+
+    pub fn update_last_name(&mut self, last_name: LastName) {
+        self.last_name = Some(last_name);
+    }
+
+    pub fn update_bio(&mut self, bio: Bio) {
+        self.bio = Some(bio);
+    }
+
+    pub fn update_profile_image_url(&mut self, profile_image_url: ImageUrl) {
+        self.profile_image_url = Some(profile_image_url);
+    }
+
+    pub fn new_from(
+        id: Id,
+        email: Email,
+        first_name: Option<FirstName>,
+        last_name: Option<LastName>,
+        bio: Option<Bio>,
+        profile_image_url: Option<ImageUrl>,
+    ) -> Self {
+        Self {
+            id,
+            email,
+            first_name,
+            last_name,
+            bio,
+            profile_image_url,
+        }
+    }
 }
