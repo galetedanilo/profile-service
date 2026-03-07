@@ -50,6 +50,6 @@ jobs:
         # O flag -D clippy::cognitive_complexity faz o build FALHAR se passar do limite
         run: cargo clippy --all-features -- -D clippy::cognitive_complexity
 
-      - name: Run Coverage Check (Min 80%)
+      - name: Run Tests & Coverage Check (Min 80%)
         # Este comando roda os testes e falha se a cobertura for < 80%
         run: cargo llvm-cov --all-features --workspace --fail-under-lines 80
