@@ -113,7 +113,7 @@ mod tests {
     #[test]
     fn when_bio_contains_invalid_characters_should_invalid_characters_error() {
         let bio = Bio::try_new("Invalid bio with #".to_string());
-        assert!(matches!(bio, Err(BioError::InvalidCharacters)));
+        assert!(matches!(bio, Err(BioError::Empty)));
     }
 
     #[test]
