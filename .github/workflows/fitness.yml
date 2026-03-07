@@ -27,6 +27,8 @@ jobs:
     permissions:
       pull-requests: write
       contents: read
+      checks: write
+      statuses: write
 
     steps:
       - name: Checkout Code
@@ -45,9 +47,11 @@ jobs:
         run: cargo clippy --all-features -- -D clippy::cognitive_complexity
 
       - name: Run Tests & Coverage (Fitness Rule #2 & #3)
-        # Roda os testes, gera o arquivo lcov e falha se a cobertura for < 80%
+        # O comando abaixo ignora arquivos na pasta /tests/ e arquivos de config como main.rs ou build.rs
         run: |
-          cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info --fail-under-lines 80
+          cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info \
+            --ignore-filename-regex "tests/|build.rs|main.rs" \
+            --fail-under-lines 80
 
       - name: Post Coverage Report (Fitness Feedback)
         # Esta Action cria o comentário automático com a tabela de cobertura no PR
