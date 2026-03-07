@@ -59,3 +59,11 @@ jobs:
           pytest-coverage-path: lcov.info
           github-token: ${{ secrets.GITHUB_TOKEN }}
         if: always()
+
+      - name: Get Coverage Percentage
+        id: coverage_percent
+        run: |
+          # Extrai a porcentagem total do arquivo lcov
+          TOTAL=$(lcov --summary lcov.info | grep "lines......" | cut -d ' ' -f 4 | cut -d '%' -f 1)
+          echo "PERCENT=$TOTAL" >> $GITHUB_OUTPUT
+

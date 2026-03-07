@@ -1,3 +1,7 @@
+# Status da Saúde do Código (Fitness Functions)
+   
+![Fitness Functions](https://github.com/galetedanilo/profile-service)
+
 # 👤 Profile Service
 
 Um microsserviço de alta performance desenvolvido em **Rust**, focado no gerenciamento de perfis de usuários. O projeto utiliza os princípios de **Domain-Driven Design (DDD)** para garantir um código escalável, testável e de fácil manutenção.
