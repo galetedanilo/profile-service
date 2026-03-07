@@ -6,7 +6,5 @@ pub mod presentation;
 
 #[tokio::main]
 async fn main() {
-    println!("Hello, world!");
-
     Service::run().await;
 }

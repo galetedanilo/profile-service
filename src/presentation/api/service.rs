@@ -1,7 +1,10 @@
+use std::net::SocketAddr;
+
 use axum::{
     Router,
     routing::{get, post},
 };
+use tower_governor::{GovernorLayer, governor::GovernorConfigBuilder};
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
@@ -18,6 +21,12 @@ impl Service {
             .with(tracing_subscriber::fmt::layer())
             .init();
 
+        let governor_conf = GovernorConfigBuilder::default()
+            .per_second(2)
+            .burst_size(8)
+            .finish()
+            .unwrap();
+
         let routers = Router::new()
             .route("/profiles", post(create_profile_handler))
             .route(
@@ -27,11 +36,17 @@ impl Service {
 
         let app = Router::new()
             .nest("/v1", routers)
-            .layer(TraceLayer::new_for_http());
+            .layer(TraceLayer::new_for_http())
+            .layer(GovernorLayer::new(governor_conf));
 
         let listener = tokio::net::TcpListener::bind("127.0.0.2:3000")
             .await
             .unwrap();
-        axum::serve(listener, app).await.unwrap();
+        axum::serve(
+            listener,
+            app.into_make_service_with_connect_info::<SocketAddr>(),
+        )
+        .await
+        .unwrap();
     }
 }
