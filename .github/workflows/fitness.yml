@@ -46,7 +46,7 @@ jobs:
         # O flag -D força o erro se a complexidade exceder o limite do clippy.toml
         run: cargo clippy --all-features -- -D clippy::cognitive_complexity
 
-            - name: Run Tests & Coverage
+      - name: Run Tests & Coverage
         # O "set -o pipefail" ajuda a capturar erros em cadeias de comandos
         # Criamos um arquivo chamado 'test_result' para marcar se o teste falhou
         run: |
