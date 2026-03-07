@@ -31,6 +31,15 @@ src/
 - **Serialização:** [Serde](https://serde.rs) (Pendente implementação)
 - **Validação:** [Validify](https://github.com/biblius/validify) (Validação e transformação de dados de entrada)
 
+## 🛠 Fitness Functions
+
+Este projeto utiliza Fitness Functions automatizadas via GitHub Actions:
+
+- Mínimo de 80% de cobertura de testes.
+- Complexidade controlada via Clippy.
+
+Se o build falhar, verifique se você adicionou testes para as novas funcionalidades ou se a lógica da sua função pode ser simplificada (refatorada).
+
 ## 📋 Status dos Endpoints (API)
 
 | Método | Endpoint        | Descrição                 | Status                               |

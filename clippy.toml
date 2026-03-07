@@ -1,0 +1,3 @@
+# Define o limite de complexidade cognitiva. Funções que excederem este valor
+# causarão falha no build da Fitness Function.
+cognitive-complexity-threshold = 10
