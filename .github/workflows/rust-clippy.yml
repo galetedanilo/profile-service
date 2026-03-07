@@ -1,0 +1,55 @@
+# ==============================================================================
+# FITNESS FUNCTION: ARQUITETURA E QUALIDADE (RUST)
+# ==============================================================================
+# Este workflow atua como uma "Fitness Function" para garantir que o projeto
+# mantenha seus atributos de qualidade durante a evolução do código.
+#
+# OBJETIVOS:
+# 1. COMPLEXIDADE COGNITIVA: Utiliza o Clippy para garantir que nenhuma função
+#    se torne complexa demais para manutenção (Limite definido no clippy.toml).
+# 2. COBERTURA DE TESTES: Utiliza o cargo-llvm-cov para assegurar que pelo menos
+#    80% das linhas de código sejam exercitadas por testes automatizados.
+#
+# FUNCIONAMENTO:
+# - Bloqueia Pull Requests que não atingirem a cobertura mínima.
+# - Falha o build se detectar alta complexidade ou violações de linting.
+# - Garante a integridade arquitetural sem necessidade de revisão manual constante.
+# ==============================================================================
+
+name: rust-clippy analyze
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    # The branches below must be a subset of the branches above
+    branches: [ "main" ]
+  schedule:
+    - cron: '40 13 * * 4'
+
+jobs:
+  fitness-function:
+    name: Architecture & Quality Guard
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, llvm-tools-preview
+
+      - name: Install Coverage Tool
+        uses: taiki-e/install-action@cargo-llvm-cov
+
+      - name: Run Complexity Check
+        # O flag -D clippy::cognitive_complexity faz o build FALHAR se passar do limite
+        run: cargo clippy --all-features -- -D clippy::cognitive_complexity
+
+      - name: Run Coverage Check (Min 80%)
+        # Este comando roda os testes e falha se a cobertura for < 80%
+        run: cargo llvm-cov --all-features --workspace --fail-under-lines 80
