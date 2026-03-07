@@ -22,7 +22,7 @@ jobs:
   quality-gate:
     name: Architecture Guard # Nome que aparece no "Branch Protection / Rulesets"
     runs-on: ubuntu-latest
-    
+
     # Permissões para que o GitHub Actions possa comentar no seu Pull Request
     permissions:
       contents: read
@@ -46,12 +46,18 @@ jobs:
         # O flag -D força o erro se a complexidade exceder o limite do clippy.toml
         run: cargo clippy --all-features -- -D clippy::cognitive_complexity
 
-      - name: Run Tests & Coverage (Fitness Rule #2 & #3)
-        # O comando abaixo ignora arquivos na pasta /tests/ e arquivos de config como main.rs ou build.rs
+      - name: Run Tests & Coverage
+        # Removido o --fail-under-lines daqui para garantir que o arquivo lcov.info seja criado
         run: |
           cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info \
-            --ignore-filename-regex "tests/|build.rs|main.rs" \
-            --fail-under-lines 80
+            --ignore-filename-regex "tests/|test/|main.rs|build.rs"
+
+      - name: Check Coverage Threshold (80%)
+        # Este passo agora verifica se o arquivo gerado atinge os 80%
+        # Se não atingir, este passo falha e bloqueia o PR
+        run: |
+          cargo llvm-cov --fail-under-lines 80 --no-run --lcov --output-path lcov.info \
+            --ignore-filename-regex "tests/|test/|main.rs|build.rs"
 
       - name: Pytest coverage comment
         uses: MishaKav/pytest-coverage-comment@main
@@ -66,4 +72,3 @@ jobs:
           # Extrai a porcentagem total do arquivo lcov
           TOTAL=$(lcov --summary lcov.info | grep "lines......" | cut -d ' ' -f 4 | cut -d '%' -f 1)
           echo "PERCENT=$TOTAL" >> $GITHUB_OUTPUT
-
