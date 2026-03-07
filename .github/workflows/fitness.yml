@@ -1,0 +1,59 @@
+# ==============================================================================
+# FITNESS FUNCTION: GUARDIÃO DE ARQUITETURA E QUALIDADE (RUST)
+# ==============================================================================
+# Este workflow atua como uma "Fitness Function" automatizada. Ele garante que
+# o código evolua sem perder atributos essenciais de qualidade.
+#
+# VERIFICAÇÕES REALIZADAS:
+# 1. COMPLEXIDADE COGNITIVA: Bloqueia funções difíceis de manter (via Clippy).
+# 2. TESTES UNITÁRIOS: Garante que toda a lógica de negócio esteja funcionando.
+# 3. COBERTURA MÍNIMA (80%): Impede o merge se o código novo não tiver testes.
+# 4. FEEDBACK VISUAL: Posta uma tabela de cobertura diretamente no Pull Request.
+# ==============================================================================
+
+name: Fitness Functions
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  quality-gate:
+    name: Architecture Guard # Nome que aparece no "Branch Protection / Rulesets"
+    runs-on: ubuntu-latest
+    
+    # Permissões para que o GitHub Actions possa comentar no seu Pull Request
+    permissions:
+      pull-requests: write
+      contents: read
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, llvm-tools-preview
+
+      - name: Install Coverage Tool (cargo-llvm-cov)
+        uses: taiki-e/install-action@cargo-llvm-cov
+
+      - name: Check Complexity (Fitness Rule #1)
+        # O flag -D força o erro se a complexidade exceder o limite do clippy.toml
+        run: cargo clippy --all-features -- -D clippy::cognitive_complexity
+
+      - name: Run Tests & Coverage (Fitness Rule #2 & #3)
+        # Roda os testes, gera o arquivo lcov e falha se a cobertura for < 80%
+        run: |
+          cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info --fail-under-lines 80
+
+      - name: Post Coverage Report (Fitness Feedback)
+        # Esta Action cria o comentário automático com a tabela de cobertura no PR
+        uses: romeovs/lcov-reporter-action@v0.3.1
+        with:
+          lcov-file: lcov.info
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+        # O "if: always()" garante que o relatório apareça mesmo se os testes falharem
+        if: always() 
