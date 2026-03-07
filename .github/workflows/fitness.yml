@@ -25,8 +25,8 @@ jobs:
     
     # Permissões para que o GitHub Actions possa comentar no seu Pull Request
     permissions:
-      pull-requests: write
       contents: read
+      pull-requests: write
       checks: write
       statuses: write
 
@@ -53,11 +53,9 @@ jobs:
             --ignore-filename-regex "tests/|build.rs|main.rs" \
             --fail-under-lines 80
 
-      - name: Post Coverage Report (Fitness Feedback)
-        # Esta Action cria o comentário automático com a tabela de cobertura no PR
-        uses: romeovs/lcov-reporter-action@v0.3.1
+      - name: Pytest coverage comment
+        uses: MishaKav/pytest-coverage-comment@main
         with:
-          lcov-file: lcov.info
+          pytest-coverage-path: lcov.info
           github-token: ${{ secrets.GITHUB_TOKEN }}
-        # O "if: always()" garante que o relatório apareça mesmo se os testes falharem
-        if: always() 
+        if: always()
