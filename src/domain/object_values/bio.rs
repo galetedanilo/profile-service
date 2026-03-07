@@ -107,7 +107,7 @@ mod tests {
     #[test]
     fn when_bio_just_white_space_should_empty_error() {
         let bio = Bio::try_new("  ".to_string());
-        assert!(matches!(bio, Err(BioError::InvalidCharacters)));
+        assert!(matches!(bio, Err(BioError::Empty)));
     }
 
     #[test]
