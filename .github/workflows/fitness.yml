@@ -46,11 +46,12 @@ jobs:
         # O flag -D força o erro se a complexidade exceder o limite do clippy.toml
         run: cargo clippy --all-features -- -D clippy::cognitive_complexity
 
-      - name: Run Tests & Coverage
-        # Removido o --fail-under-lines daqui para garantir que o arquivo lcov.info seja criado
+            - name: Run Tests & Coverage
+        # O "set -o pipefail" ajuda a capturar erros em cadeias de comandos
+        # Criamos um arquivo chamado 'test_result' para marcar se o teste falhou
         run: |
           cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info \
-            --ignore-filename-regex "tests/|test/|main.rs|build.rs" || true
+            --ignore-filename-regex "tests/|test/|main.rs|build.rs" || echo "failed" > test_result
 
       - name: Pytest coverage comment
         uses: MishaKav/pytest-coverage-comment@main
@@ -59,10 +60,15 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
         if: always()
 
-      - name: Check Coverage Threshold (80%)
-        # Este passo agora verifica se o arquivo gerado atinge os 80%
-        # Se não atingir, este passo falha e bloqueia o PR
+      - name: Final Quality Gate (Check Tests and Coverage)
         run: |
+          # 1. Verifica se os testes falharam no passo anterior
+          if [ -f test_result ]; then
+            echo "❌ Os testes unitários falharam (Erro 101/Panic)!"
+            exit 1
+          fi
+          
+          # 2. Verifica a cobertura de 80%
           cargo llvm-cov --fail-under-lines 80 --no-run --lcov --output-path lcov.info \
             --ignore-filename-regex "tests/|test/|main.rs|build.rs"
 
