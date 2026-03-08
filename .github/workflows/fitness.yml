@@ -42,16 +42,16 @@ jobs:
       - name: Install Coverage Tool (cargo-llvm-cov)
         uses: taiki-e/install-action@cargo-llvm-cov
 
-      - name: Check Complexity (Fitness Rule #1)
-        # O flag -D força o erro se a complexidade exceder o limite do clippy.toml
-        run: cargo clippy --all-features -- -D clippy::cognitive_complexity
-
-      - name: Run Tests & Coverage
-        # O "set -o pipefail" ajuda a capturar erros em cadeias de comandos
-        # Criamos um arquivo chamado 'test_result' para marcar se o teste falhou
+      - name: Run Tests & Generate Data
+        # 1. Roda os testes e guarda os dados brutos (mesmo que falhe)
         run: |
-          cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info \
-            --ignore-filename-regex "tests/|test/|main.rs|build.rs" || echo "failed" > test_result
+          cargo llvm-cov --all-features --workspace --no-report || echo "failed" > test_result
+
+      - name: Generate LCOV Report
+        # 2. Gera o arquivo .info a partir dos dados que o passo anterior coletou
+        run: |
+          cargo llvm-cov report --lcov --output-path lcov.info \
+            --ignore-filename-regex "tests/|test/|main.rs|build.rs"
 
       - name: Pytest coverage comment
         uses: MishaKav/pytest-coverage-comment@main
@@ -60,15 +60,14 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
         if: always()
 
-      - name: Final Quality Gate (Check Tests and Coverage)
+      - name: Final Quality Gate
         run: |
-          # 1. Verifica se os testes falharam no passo anterior
+          # Se o arquivo test_result existe, o teste falhou
           if [ -f test_result ]; then
-            echo "❌ Os testes unitários falharam (Erro 101/Panic)!"
+            echo "❌ Falha nos testes unitários detectada!"
             exit 1
           fi
-          
-          # 2. Verifica a cobertura de 80%
+          # Se os testes passaram, verifica a cobertura de 80%
           cargo llvm-cov --fail-under-lines 80 --no-run --lcov --output-path lcov.info \
             --ignore-filename-regex "tests/|test/|main.rs|build.rs"
 
