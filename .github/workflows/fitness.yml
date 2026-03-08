@@ -42,32 +42,32 @@ jobs:
       - name: Install Coverage Tool (cargo-llvm-cov)
         uses: taiki-e/install-action@cargo-llvm-cov
 
-      - name: Run Tests & Generate Data
-        # 1. Roda os testes e guarda os dados brutos (mesmo que falhe)
+            - name: 🧪 Run Tests & Collect Data
+        # O '|| true' garante que o Job não pare no erro 101/panic
         run: |
           cargo llvm-cov --all-features --workspace --no-report || echo "failed" > test_result
 
-      - name: Generate LCOV Report
-        # 2. Gera o arquivo .info a partir dos dados que o passo anterior coletou
+      - name: 📊 Generate Clean LCOV Report
+        # Este comando consolida os dados, mesmo que parciais, em um formato lcov válido
         run: |
           cargo llvm-cov report --lcov --output-path lcov.info \
             --ignore-filename-regex "tests/|test/|main.rs|build.rs"
 
-      - name: Pytest coverage comment
+      - name: 💬 Post PR Comment
         uses: MishaKav/pytest-coverage-comment@main
         with:
           pytest-coverage-path: lcov.info
           github-token: ${{ secrets.GITHUB_TOKEN }}
         if: always()
 
-      - name: Final Quality Gate
+      - name: 🚩 Final Quality Gate
         run: |
-          # Se o arquivo test_result existe, o teste falhou
+          # 1. Verifica se houve falha de execução (Panic)
           if [ -f test_result ]; then
-            echo "❌ Falha nos testes unitários detectada!"
+            echo "❌ ERRO: Os testes unitários falharam (Panic/Status 101)."
             exit 1
           fi
-          # Se os testes passaram, verifica a cobertura de 80%
+          # 2. Verifica se a cobertura atingiu os 80%
           cargo llvm-cov --fail-under-lines 80 --no-run --lcov --output-path lcov.info \
             --ignore-filename-regex "tests/|test/|main.rs|build.rs"
 
