@@ -8,7 +8,6 @@
 # 1. COMPLEXIDADE COGNITIVA: Bloqueia funções difíceis de manter (via Clippy).
 # 2. TESTES UNITÁRIOS: Garante que toda a lógica de negócio esteja funcionando.
 # 3. COBERTURA MÍNIMA (80%): Impede o merge se o código novo não tiver testes.
-# 4. FEEDBACK VISUAL: Posta uma tabela de cobertura diretamente no Pull Request.
 # ==============================================================================
 
 name: Fitness Functions
@@ -20,16 +19,9 @@ on:
 
 jobs:
   quality-gate:
-    name: Architecture Guard # Nome que aparece no "Branch Protection / Rulesets"
+    name: Architecture Guard
     runs-on: ubuntu-latest
-
-    # Permissões para que o GitHub Actions possa comentar no seu Pull Request
-    permissions:
-      contents: read
-      pull-requests: write
-      checks: write
-      statuses: write
-
+    
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -39,37 +31,21 @@ jobs:
         with:
           components: clippy, llvm-tools-preview
 
-      - name: Install Coverage Tool (cargo-llvm-cov)
+      - name: Install Coverage Tool
         uses: taiki-e/install-action@cargo-llvm-cov
 
-      - name: 🧪 Run Tests & Collect Data
-        # O '|| true' garante que o Job não pare no erro 101/panic
-        run: |
-          cargo llvm-cov --all-features --workspace --no-report || echo "failed" > test_result
+      - name: 🛡️ Rule 1 - Complexity Check
+        # Falha o build se o código for difícil de manter (conforme clippy.toml)
+        run: cargo clippy --all-features -- -D clippy::cognitive_complexity
 
-      - name: 📊 Generate Clean LCOV Report
-        # Este comando consolida os dados, mesmo que parciais, em um formato lcov válido
+      - name: 🛡️ Rule 2 & 3 - Run Tests & Check Coverage (Min 80%)
+        # Este comando faz tudo: roda os testes e falha se algum falhar OU
+        # se a cobertura for menor que 80%.
+        # Ignora arquivos de teste e configurações para o cálculo ser justo.
         run: |
-          cargo llvm-cov report --lcov --output-path lcov.info \
-            --ignore-filename-regex "tests/|test/|main.rs|build.rs"
-
-      - name: 💬 Post PR Comment
-        uses: MishaKav/pytest-coverage-comment@main
-        with:
-          pytest-coverage-path: lcov.info
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-        if: always()
-
-      - name: 🚩 Final Quality Gate
-        run: |
-          # 1. Verifica se houve falha de execução (Panic)
-          if [ -f test_result ]; then
-            echo "❌ ERRO: Os testes unitários falharam (Panic/Status 101)."
-            exit 1
-          fi
-          # 2. Verifica se a cobertura atingiu os 80%
-          cargo llvm-cov --fail-under-lines 80 --no-run --lcov --output-path lcov.info \
-            --ignore-filename-regex "tests/|test/|main.rs|build.rs"
+          cargo llvm-cov --all-features --workspace \
+            --ignore-filename-regex "tests/|test/|main.rs|build.rs" \
+            --fail-under-lines 80
 
       - name: Get Coverage Percentage
         id: coverage_percent
