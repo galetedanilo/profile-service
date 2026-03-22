@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use thiserror::Error;
 
-use crate::domain::helpers::BIO_VALID_CHARS_REGEX;
+use crate::domain::{helpers::BIO_VALID_CHARS_REGEX, models::profile::ProfileError};
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Bio(String);
@@ -78,6 +78,12 @@ impl TryFrom<String> for Bio {
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
         Self::try_new(value)
+    }
+}
+
+impl From<BioError> for ProfileError {
+    fn from(error: BioError) -> Self {
+        ProfileError::InvalidData(error.to_string())
     }
 }
 

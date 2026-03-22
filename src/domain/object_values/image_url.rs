@@ -2,6 +2,8 @@ use std::fmt::Display;
 
 use thiserror::Error;
 
+use crate::domain::models::profile::ProfileError;
+
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct ImageUrl(String);
 
@@ -77,6 +79,12 @@ impl TryFrom<&str> for ImageUrl {
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
         Self::try_new(value.to_string())
+    }
+}
+
+impl From<ImageUrlError> for ProfileError {
+    fn from(error: ImageUrlError) -> Self {
+        ProfileError::InvalidData(error.to_string())
     }
 }
 

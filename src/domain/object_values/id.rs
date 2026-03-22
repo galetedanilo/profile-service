@@ -3,6 +3,8 @@ use std::fmt::Display;
 use thiserror::Error;
 use uuid::Uuid;
 
+use crate::domain::models::profile::ProfileError;
+
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Id(Uuid);
 
@@ -52,6 +54,12 @@ impl TryFrom<String> for Id {
     }
 }
 
+impl From<IdError> for ProfileError {
+    fn from(error: IdError) -> Self {
+        ProfileError::InvalidData(error.to_string())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -74,9 +82,6 @@ mod tests {
     fn when_str_is_not_valid_uuid_should_invalid_error() {
         let id_str = "invalid-uuid";
         let result = Id::from_str(id_str);
-        assert!(matches!(
-            result,
-            Err(IdError::Invalid(_))
-        ))
+        assert!(matches!(result, Err(IdError::Invalid(_))))
     }
 }

@@ -30,38 +30,20 @@ impl<R: ProfileRepository + Send + Sync> UpdateProfileUseCase<R> {
 
         let id = Id::try_from(id).map_err(|e| ProfileError::InvalidData(e.to_string()))?;
 
-        let profile = self
-            .repository
-            .get_profile_by_id(&id)
-            .await
-            .map_err(|e| ProfileError::RepositoryError(e.to_string()))?;
+        let profile = self.repository.get_profile_by_id(&id).await?;
 
         if let Some(mut profile) = profile {
-            if let Some(first_name) = input.first_name {
-                let first_name = FirstName::try_from(first_name)
-                    .map_err(|e| ProfileError::InvalidData(e.to_string()))?;
-                profile.update_first_name(first_name);
-            }
-            if let Some(last_name) = input.last_name {
-                let last_name = LastName::try_from(last_name)
-                    .map_err(|e| ProfileError::InvalidData(e.to_string()))?;
-                profile.update_last_name(last_name);
-            }
-            if let Some(bio) = input.bio {
-                let bio =
-                    Bio::try_from(bio).map_err(|e| ProfileError::InvalidData(e.to_string()))?;
-                profile.update_bio(bio);
-            }
-            if let Some(profile_image_url) = input.profile_image_url {
-                let profile_image_url = ImageUrl::try_from(profile_image_url)
-                    .map_err(|e| ProfileError::InvalidData(e.to_string()))?;
-                profile.update_profile_image_url(profile_image_url);
-            }
+            profile.update_profile(
+                input.first_name.map(FirstName::try_from).transpose()?,
+                input.last_name.map(LastName::try_from).transpose()?,
+                input.bio.map(Bio::try_from).transpose()?,
+                input
+                    .profile_image_url
+                    .map(ImageUrl::try_from)
+                    .transpose()?,
+            );
 
-            self.repository
-                .save(&profile)
-                .await
-                .map_err(|e| ProfileError::RepositoryError(e.to_string()))?;
+            self.repository.save(&profile).await?;
 
             Ok(Some(profile))
         } else {
@@ -222,6 +204,7 @@ mod tests {
             Some(LastName::try_from("Doe".to_string()).unwrap()),
             Some(Bio::try_from("Hello, I'm John!".to_string()).unwrap()),
             Some(ImageUrl::try_from("http://example.com/profile.jpg".to_string()).unwrap()),
+            1,
         );
 
         mock_repo
