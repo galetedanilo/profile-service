@@ -22,10 +22,8 @@ impl<R: ProfileRepository + Send + Sync> CreateProfileUseCase<R> {
             .validify()
             .map_err(|e| ProfileError::InvalidData(e.to_string()))?;
 
-        let id =
-            Id::try_from(input.id.clone()).map_err(|e| ProfileError::InvalidData(e.to_string()))?;
-        let email = Email::try_from(input.email.clone())
-            .map_err(|e| ProfileError::InvalidData(e.to_string()))?;
+        let id = Id::try_from(input.id.clone())?;
+        let email = Email::try_from(input.email.clone())?;
 
         if let Ok(Some(_)) = self.repository.get_profile_by_id(&id).await {
             return Err(ProfileError::AlreadyExists(input.id));
@@ -33,10 +31,7 @@ impl<R: ProfileRepository + Send + Sync> CreateProfileUseCase<R> {
 
         let profile = Profile::new(id, email);
 
-        self.repository
-            .save(&profile)
-            .await
-            .map_err(|e| ProfileError::RepositoryError(e.to_string()))?;
+        self.repository.save(&profile).await?;
 
         Ok(())
     }

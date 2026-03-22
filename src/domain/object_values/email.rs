@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use thiserror::Error;
 
-use crate::domain::helpers::EMAIL_REGEX;
+use crate::domain::{helpers::EMAIL_REGEX, models::profile::ProfileError};
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Email(String);
@@ -72,6 +72,12 @@ impl TryFrom<&str> for Email {
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
         Self::try_new(value.to_string())
+    }
+}
+
+impl From<EmailError> for ProfileError {
+    fn from(error: EmailError) -> Self {
+        ProfileError::InvalidData(error.to_string())
     }
 }
 

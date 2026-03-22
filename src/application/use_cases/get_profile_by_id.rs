@@ -14,12 +14,12 @@ impl<R: ProfileRepository + Send + Sync> GetProfileById<R> {
     }
 
     pub async fn execute(&self, id: String) -> Result<Option<Profile>, ProfileError> {
-        let id = Id::try_from(id).map_err(|e| ProfileError::InvalidData(e.to_string()))?;
+        let id = Id::try_from(id)?;
 
         self.repository
             .get_profile_by_id(&id)
             .await
-            .map_err(|e| ProfileError::RepositoryError(e.to_string()))
+            .map_err(ProfileError::from)
     }
 }
 
@@ -89,15 +89,13 @@ mod tests {
         mock_repo
             .expect_get_profile_by_id()
             .times(1)
-            .return_const(Err(ProfileRepositoryError::DatabaseError(
-                "mock error".into(),
-            )));
+            .return_const(Err(ProfileRepositoryError::Unknown("mock error".into())));
 
         let use_case = GetProfileById::new(mock_repo);
 
         let result = use_case.execute(Uuid::now_v7().to_string()).await;
 
         assert!(result.is_err());
-        assert!(matches!(result, Err(ProfileError::RepositoryError(_))));
+        assert!(matches!(result, Err(ProfileError::Unknown(_))));
     }
 }

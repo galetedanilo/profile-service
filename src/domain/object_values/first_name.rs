@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use thiserror::Error;
 
-use crate::domain::helpers::VALID_CHARS_REGEX;
+use crate::domain::{helpers::VALID_CHARS_REGEX, models::profile::ProfileError};
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct FirstName(String);
@@ -87,6 +87,12 @@ impl TryFrom<String> for FirstName {
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
         Self::try_new(value)
+    }
+}
+
+impl From<FirstNameError> for ProfileError {
+    fn from(error: FirstNameError) -> Self {
+        ProfileError::InvalidData(error.to_string())
     }
 }
 

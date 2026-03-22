@@ -2,6 +2,7 @@ use presentation::api::service::Service;
 
 pub mod application;
 pub mod domain;
+pub mod infrastructure;
 pub mod presentation;
 
 #[tokio::main]
