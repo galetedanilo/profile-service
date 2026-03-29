@@ -1,13 +1,19 @@
-use serde::Deserialize;
-use validify::Validify;
+use crate::domain::{
+    models::profile::ProfileError,
+    object_values::{email::Email, id::Id},
+};
 
-#[derive(Debug, Clone, Deserialize, Validify)]
+#[derive(Debug, Clone)]
 pub struct CreateProfileInput {
-    #[modify(lowercase, trim)]
-    #[validate(length(min = 3, max = 100))]
-    pub id: String,
+    pub id: Id,
+    pub email: Email,
+}
 
-    #[modify(lowercase, trim)]
-    #[validate(email, length(min = 3, max = 255))]
-    pub email: String,
+impl CreateProfileInput {
+    pub fn try_new(id: String, email: String) -> Result<Self, ProfileError> {
+        let id = Id::try_from(id)?;
+        let email = Email::try_from(email)?;
+
+        Ok(Self { id, email })
+    }
 }

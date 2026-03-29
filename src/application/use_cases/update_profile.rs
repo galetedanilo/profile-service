@@ -1,169 +1,95 @@
+use std::sync::Arc;
+
 use crate::{
     application::dtos::update_profile_input::UpdateProfileInput,
     domain::{
         models::profile::{Profile, ProfileError},
-        object_values::{
-            bio::Bio, first_name::FirstName, id::Id, image_url::ImageUrl, last_name::LastName,
-        },
         repositories::profile_repo::ProfileRepository,
     },
 };
-use validify::Validify;
 
+#[derive(Clone)]
 pub struct UpdateProfileUseCase<R: ProfileRepository + Send + Sync> {
-    repository: R,
+    repository: Arc<R>,
 }
 
 impl<R: ProfileRepository + Send + Sync> UpdateProfileUseCase<R> {
-    pub fn new(repository: R) -> Self {
+    pub fn new(repository: Arc<R>) -> Self {
         Self { repository }
     }
 
     pub async fn execute(
         &self,
-        id: String,
-        mut input: UpdateProfileInput,
+        input: UpdateProfileInput,
     ) -> Result<Option<Profile>, ProfileError> {
-        input
-            .validify()
-            .map_err(|e| ProfileError::InvalidData(e.to_string()))?;
-
-        let id = Id::try_from(id).map_err(|e| ProfileError::InvalidData(e.to_string()))?;
-
-        let profile = self.repository.get_profile_by_id(&id).await?;
+        let profile = self.repository.get_profile_by_id(&input.id).await?;
 
         if let Some(mut profile) = profile {
+            if input.version != profile.version() {
+                return Err(ProfileError::VersionConflict(
+                    "Version mismatch".to_string(),
+                ));
+            }
+
             profile.update_profile(
-                input.first_name.map(FirstName::try_from).transpose()?,
-                input.last_name.map(LastName::try_from).transpose()?,
-                input.bio.map(Bio::try_from).transpose()?,
-                input
-                    .profile_image_url
-                    .map(ImageUrl::try_from)
-                    .transpose()?,
+                input.first_name,
+                input.last_name,
+                input.bio,
+                input.profile_image_url,
             );
 
             self.repository.save(&profile).await?;
 
             Ok(Some(profile))
         } else {
-            Err(ProfileError::NotFound(id.to_string()))
+            Err(ProfileError::NotFound(input.id.to_string()))
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use fake::{
-        Fake,
-        faker::name::en::{FirstName, LastName},
-    };
+
     use uuid::Uuid;
 
     use super::*;
 
     use crate::domain::{
-        object_values::email::Email, repositories::profile_repo::MockProfileRepository,
+        object_values::{
+            bio::Bio, email::Email, first_name::FirstName, id::Id, image_url::ImageUrl,
+            last_name::LastName,
+        },
+        repositories::profile_repo::MockProfileRepository,
     };
 
     #[tokio::test]
-    pub async fn when_id_is_invalid_should_return_invalid_data_error() {
-        let mock_repo = MockProfileRepository::new();
+    pub async fn when_version_mismatch_should_return_version_conflict_error() {
+        let mut mock_repo = MockProfileRepository::new();
 
-        let use_case = UpdateProfileUseCase::new(mock_repo);
+        let id = Uuid::now_v7().to_string();
 
-        let invalid_id = String::from("invalid id");
+        let existing_profile = Profile::new_from(
+            Id::try_from(id.clone()).unwrap(),
+            Email::try_from("existing@example.com").unwrap(),
+            None,
+            None,
+            None,
+            None,
+            3,
+        );
 
-        let input = UpdateProfileInput {
-            first_name: Some(FirstName().fake::<String>()),
-            last_name: Some(LastName().fake::<String>()),
-            bio: None,
-            profile_image_url: None,
-        };
+        mock_repo
+            .expect_get_profile_by_id()
+            .times(1)
+            .return_const(Ok(Some(existing_profile)));
 
-        let result = use_case.execute(invalid_id, input).await;
+        let use_case = UpdateProfileUseCase::new(Arc::new(mock_repo));
 
-        assert!(matches!(result, Err(ProfileError::InvalidData(_))));
-    }
+        let input = UpdateProfileInput::try_new(id.clone(), None, None, None, None, 2).unwrap();
 
-    #[tokio::test]
-    pub async fn when_first_name_is_invalid_should_return_invalid_data_error() {
-        let mock_repo = MockProfileRepository::new();
+        let result = use_case.execute(input).await;
 
-        let use_case = UpdateProfileUseCase::new(mock_repo);
-
-        let invalid_id = Uuid::now_v7().to_string();
-
-        let input = UpdateProfileInput {
-            first_name: Some("".to_string()), // Invalid first name
-            last_name: Some(LastName().fake::<String>()),
-            bio: None,
-            profile_image_url: None,
-        };
-
-        let result = use_case.execute(invalid_id, input).await;
-
-        assert!(matches!(result, Err(ProfileError::InvalidData(_))));
-    }
-
-    #[tokio::test]
-    pub async fn when_last_name_is_invalid_should_return_invalid_data_error() {
-        let mock_repo = MockProfileRepository::new();
-
-        let use_case = UpdateProfileUseCase::new(mock_repo);
-
-        let invalid_id = Uuid::now_v7().to_string();
-
-        let input = UpdateProfileInput {
-            first_name: None,
-            last_name: Some("".to_string()), // Invalid last name
-            bio: None,
-            profile_image_url: None,
-        };
-
-        let result = use_case.execute(invalid_id, input).await;
-
-        assert!(matches!(result, Err(ProfileError::InvalidData(_))));
-    }
-
-    #[tokio::test]
-    pub async fn when_bio_is_invalid_should_return_invalid_data_error() {
-        let mock_repo = MockProfileRepository::new();
-
-        let use_case = UpdateProfileUseCase::new(mock_repo);
-
-        let invalid_id = Uuid::now_v7().to_string();
-
-        let input = UpdateProfileInput {
-            first_name: None,
-            last_name: None,
-            bio: Some("".to_string()), // Invalid bio
-            profile_image_url: None,
-        };
-
-        let result = use_case.execute(invalid_id, input).await;
-
-        assert!(matches!(result, Err(ProfileError::InvalidData(_))));
-    }
-
-    #[tokio::test]
-    pub async fn when_profile_image_url_is_invalid_should_return_invalid_data_error() {
-        let mock_repo = MockProfileRepository::new();
-
-        let use_case = UpdateProfileUseCase::new(mock_repo);
-
-        let invalid_id = Uuid::now_v7().to_string();
-
-        let input = UpdateProfileInput {
-            first_name: None,
-            last_name: None,
-            bio: None,
-            profile_image_url: Some("".to_string()), // Invalid profile image URL
-        };
-
-        let result = use_case.execute(invalid_id, input).await;
-
-        assert!(matches!(result, Err(ProfileError::InvalidData(_))));
+        assert!(matches!(result, Err(ProfileError::VersionConflict(_))));
     }
 
     #[tokio::test]
@@ -177,16 +103,12 @@ mod tests {
             .times(1)
             .return_const(Ok(None));
 
-        let use_case = UpdateProfileUseCase::new(mock_repo);
+        let use_case = UpdateProfileUseCase::new(Arc::new(mock_repo));
 
-        let input = UpdateProfileInput {
-            first_name: Some(FirstName().fake::<String>()),
-            last_name: Some(LastName().fake::<String>()),
-            bio: None,
-            profile_image_url: None,
-        };
+        let input = UpdateProfileInput::try_new(non_existent_id.clone(), None, None, None, None, 2)
+            .unwrap();
 
-        let result = use_case.execute(non_existent_id, input).await;
+        let result = use_case.execute(input).await;
 
         assert!(matches!(result, Err(ProfileError::NotFound(_))));
     }
@@ -197,13 +119,26 @@ mod tests {
 
         let existing_id = Uuid::now_v7().to_string();
 
+        let fake_email = "jane.smith@example.com".to_string();
+        let fake_first_name = "Jane".to_string();
+        let fake_last_name = "Smith".to_string();
+        let fake_bio = "Hi, I'm Jane!".to_string();
+        let fake_profile_image_url = "http://example.com/new_profile.jpg".to_string();
+
+        let id = Id::try_from(existing_id.clone()).unwrap();
+        let email = Email::try_from(fake_email.clone()).unwrap();
+        let first_name = FirstName::try_from(fake_first_name.clone()).unwrap();
+        let last_name = LastName::try_from(fake_last_name.clone()).unwrap();
+        let bio = Bio::try_from(fake_bio.clone()).unwrap();
+        let profile_image_url = ImageUrl::try_from(fake_profile_image_url.clone()).unwrap();
+
         let existing_profile = Profile::new_from(
-            Id::try_from(existing_id.clone()).unwrap(),
-            Email::try_from("john.doe@example.com".to_string()).unwrap(),
-            Some(FirstName::try_from("John".to_string()).unwrap()),
-            Some(LastName::try_from("Doe".to_string()).unwrap()),
-            Some(Bio::try_from("Hello, I'm John!".to_string()).unwrap()),
-            Some(ImageUrl::try_from("http://example.com/profile.jpg".to_string()).unwrap()),
+            id,
+            email,
+            Some(first_name),
+            Some(last_name),
+            Some(bio),
+            Some(profile_image_url),
             1,
         );
 
@@ -214,16 +149,19 @@ mod tests {
 
         mock_repo.expect_save().times(1).return_const(Ok(()));
 
-        let use_case = UpdateProfileUseCase::new(mock_repo);
+        let use_case = UpdateProfileUseCase::new(Arc::new(mock_repo));
 
-        let input = UpdateProfileInput {
-            first_name: Some("Jane".to_string()),
-            last_name: Some("Smith".to_string()),
-            bio: Some("Hi, I'm Jane!".to_string()),
-            profile_image_url: Some("http://example.com/new_profile.jpg".to_string()),
-        };
+        let input = UpdateProfileInput::try_new(
+            existing_id.clone(),
+            Some(fake_first_name.clone()),
+            Some(fake_last_name.clone()),
+            Some(fake_bio.clone()),
+            Some(fake_profile_image_url.clone()),
+            1,
+        )
+        .unwrap();
 
-        let result = use_case.execute(existing_id, input).await;
+        let result = use_case.execute(input).await;
 
         assert!(result.is_ok());
 
@@ -231,22 +169,22 @@ mod tests {
 
         assert_eq!(
             updated_profile.first_name().map(|e| e.to_string()).unwrap(),
-            "Jane"
+            fake_first_name
         );
         assert_eq!(
             updated_profile.last_name().map(|e| e.to_string()).unwrap(),
-            "Smith"
+            fake_last_name
         );
         assert_eq!(
             updated_profile.bio().map(|e| e.to_string()).unwrap(),
-            "Hi, I'm Jane!"
+            fake_bio
         );
         assert_eq!(
             updated_profile
                 .profile_image_url()
                 .map(|e| e.to_string())
                 .unwrap(),
-            "http://example.com/new_profile.jpg"
+            fake_profile_image_url
         );
     }
 }
