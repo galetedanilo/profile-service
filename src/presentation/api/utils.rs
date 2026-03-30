@@ -115,3 +115,94 @@ where
         Ok(ValidatedJson(value))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::presentation::api::handlers::requests::CreateProfileRequest;
+
+    use super::*;
+    use axum::{Router, body::Body, http::Request, routing::post};
+    use serde_json::json;
+    use tower::ServiceExt;
+    use uuid::Uuid;
+
+    #[tokio::test]
+    async fn when_valid_profile_data_is_provided_then_profile_is_created() {
+        let id = Uuid::now_v7().to_string();
+        let move_id = id.clone();
+
+        let app = Router::new().route(
+            "/test",
+            post(
+                |ValidatedJson(input): ValidatedJson<CreateProfileRequest>| async move {
+                    assert_eq!(input.id, move_id);
+                    assert_eq!(input.email, "john.doe@email.com");
+                },
+            ),
+        );
+
+        let request = Request::builder()
+            .method("POST")
+            .uri("/test")
+            .header("content-type", "application/json")
+            .body(Body::from(
+                json!({
+                    "id": id,
+                    "email": "john.doe@email.com"
+                })
+                .to_string(),
+            ))
+            .unwrap();
+
+        let response = app.oneshot(request).await.unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+    }
+
+    #[tokio::test]
+    async fn when_invalid_json_then_returns_bad_request() {
+        let app = Router::new().route(
+            "/test",
+            post(|_: ValidatedJson<CreateProfileRequest>| async {
+                // This should not be called
+            }),
+        );
+
+        let request = Request::builder()
+            .method("POST")
+            .uri("/test")
+            .header("content-type", "application/json")
+            .body(Body::from("invalid json"))
+            .unwrap();
+
+        let response = app.oneshot(request).await.unwrap();
+
+        assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+    }
+
+    #[tokio::test]
+    async fn when_validation_fails_then_returns_bad_request() {
+        let app = Router::new().route(
+            "/test",
+            post(|_: ValidatedJson<CreateProfileRequest>| async {
+                // This should not be called
+            }),
+        );
+
+        let request = Request::builder()
+            .method("POST")
+            .uri("/test")
+            .header("content-type", "application/json")
+            .body(Body::from(
+                json!({
+                    "id": "invalid-uuid",
+                    "email": "not-an-email"
+                })
+                .to_string(),
+            ))
+            .unwrap();
+
+        let response = app.oneshot(request).await.unwrap();
+        assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+    }
+}
