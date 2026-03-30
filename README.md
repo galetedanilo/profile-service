@@ -29,9 +29,9 @@ O projeto está sendo estruturado seguindo as camadas do DDD:
 src/
 ├── 📁 domain/         # Regras de negócio e lógica pura
 ├── 📁 application/    # Orquestração e Casos de Uso
-├── 📦 infrastructure/ # Persistência (MongoDB) e Clientes Externos (🚧)
-├── 🚀 presentation/   # Camada de API (Axum) e Controllers (🚧)
-└── 🦀 main.rs         # Ponto de entrada do microserviço (🚧)
+├── 📦 infrastructure/ # Persistência (MongoDB) e Clientes Externos
+├── 🚀 presentation/   # Camada de API (Axum) e Controllers
+└── 🦀 main.rs         # Ponto de entrada do microserviço
 ```
 
 ## 🚀 Tecnologias Principais
@@ -57,9 +57,9 @@ Se o build falhar, verifique se você adicionou testes para as novas funcionalid
 | Método | Endpoint        | Descrição                 | Status                               |
 | :----- | :-------------- | :------------------------ | :----------------------------------- |
 | `GET`  | `/health`       | Check de saúde do sistema | 🚧 Em progresso (Application/Domain) |
-| `POST` | `/profiles`     | Criar um novo perfil      | 🚧 Em progresso (Application/Domain) |
-| `GET`  | `/profiles/:id` | Buscar perfil por ID      | 🚧 Em progresso (Application/Domain) |
-| `PUT`  | `/profiles/:id` | Atualizar dados do perfil | 🚧 Em progresso (Application/Domain) |
+| `POST` | `/profiles`     | Criar um novo perfil      | ✅ Concluído |
+| `GET`  | `/profiles/:id` | Buscar perfil por ID      | ✅ Concluído |
+| `PUT`  | `/profiles/:id` | Atualizar dados do perfil | ✅ Concluído |
 
 ## 🧪 Testes
 
@@ -76,4 +76,5 @@ cargo test
    ```bash
    git clone https://github.com/galetedanilo/profile-service.git
    cd profile-service
+   cargo run
    ```

@@ -17,7 +17,7 @@ pub enum IdError {
 impl Id {
     pub fn from_str(id_str: &str) -> Result<Self, IdError> {
         Uuid::parse_str(id_str)
-            .map_err(|e| IdError::Invalid(e.to_string()))
+            .map_err(|_| IdError::Invalid("Invalid UUID format".to_string()))
             .map(Id)
     }
 
@@ -49,7 +49,7 @@ impl TryFrom<String> for Id {
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
         Uuid::parse_str(&value)
-            .map_err(|e| IdError::Invalid(e.to_string()))
+            .map_err(|_| IdError::Invalid("Invalid UUID format".to_string()))
             .map(Id)
     }
 }

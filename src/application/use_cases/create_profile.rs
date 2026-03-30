@@ -1,35 +1,29 @@
+use std::sync::Arc;
+
 use crate::{
     application::dtos::create_profile_input::CreateProfileInput,
     domain::{
         models::profile::{Profile, ProfileError},
-        object_values::{email::Email, id::Id},
         repositories::profile_repo::ProfileRepository,
     },
 };
-use validify::Validify;
 
+#[derive(Clone)]
 pub struct CreateProfileUseCase<R: ProfileRepository + Send + Sync> {
-    repository: R,
+    repository: Arc<R>,
 }
 
 impl<R: ProfileRepository + Send + Sync> CreateProfileUseCase<R> {
-    pub fn new(repository: R) -> Self {
+    pub fn new(repository: Arc<R>) -> Self {
         Self { repository }
     }
 
-    pub async fn execute(&self, mut input: CreateProfileInput) -> Result<(), ProfileError> {
-        input
-            .validify()
-            .map_err(|e| ProfileError::InvalidData(e.to_string()))?;
-
-        let id = Id::try_from(input.id.clone())?;
-        let email = Email::try_from(input.email.clone())?;
-
-        if let Ok(Some(_)) = self.repository.get_profile_by_id(&id).await {
-            return Err(ProfileError::AlreadyExists(input.id));
+    pub async fn execute(&self, input: CreateProfileInput) -> Result<(), ProfileError> {
+        if let Ok(Some(_)) = self.repository.get_profile_by_id(&input.id).await {
+            return Err(ProfileError::AlreadyExists(input.id.to_string()));
         }
 
-        let profile = Profile::new(id, email);
+        let profile = Profile::new(input.id, input.email);
 
         self.repository.save(&profile).await?;
 
@@ -40,65 +34,20 @@ impl<R: ProfileRepository + Send + Sync> CreateProfileUseCase<R> {
 #[cfg(test)]
 mod tests {
     use fake::{Fake, faker::internet::en::FreeEmail};
-    use uuid::Uuid;
 
     use super::*;
-    use crate::domain::repositories::profile_repo::MockProfileRepository;
-
-    #[tokio::test]
-    async fn when_input_invalid_should_return_invalid_data_error() {
-        let mock_repo = MockProfileRepository::new();
-
-        let use_case = CreateProfileUseCase::new(mock_repo);
-
-        let input = CreateProfileInput {
-            id: "".to_string(),
-            email: "".to_string(),
-        };
-        let result = use_case.execute(input).await;
-
-        assert!(matches!(result, Err(ProfileError::InvalidData(_))));
-    }
-
-    #[tokio::test]
-    async fn when_input_id_invalid_should_return_invalid_data_error() {
-        let mock_repo = MockProfileRepository::new();
-
-        let use_case = CreateProfileUseCase::new(mock_repo);
-
-        let input = CreateProfileInput {
-            id: "".to_string(),
-            email: FreeEmail().fake(),
-        };
-
-        let result = use_case.execute(input).await;
-
-        assert!(matches!(result, Err(ProfileError::InvalidData(_))));
-    }
-
-    #[tokio::test]
-    async fn when_input_email_invalid_should_return_invalid_data_error() {
-        let mock_repo = MockProfileRepository::new();
-
-        let use_case = CreateProfileUseCase::new(mock_repo);
-
-        let input = CreateProfileInput {
-            id: Uuid::now_v7().to_string(),
-            email: "".to_string(),
-        };
-
-        let result = use_case.execute(input).await;
-
-        assert!(matches!(result, Err(ProfileError::InvalidData(_))));
-    }
+    use crate::domain::{
+        object_values::{email::Email, id::Id},
+        repositories::profile_repo::MockProfileRepository,
+    };
 
     #[tokio::test]
     async fn when_input_exist_profile_should_return_already_exists_error() {
         let mut mock_repo = MockProfileRepository::new();
 
         let input = CreateProfileInput {
-            id: Uuid::now_v7().to_string(),
-            email: FreeEmail().fake(),
+            id: Id::generate(),
+            email: Email::try_new(FreeEmail().fake()).unwrap(),
         };
 
         let profile = Profile::new(Id::generate(), Email::try_new(FreeEmail().fake()).unwrap());
@@ -108,7 +57,7 @@ mod tests {
             .times(1)
             .return_const(Ok(Some(profile)));
 
-        let use_case = CreateProfileUseCase::new(mock_repo);
+        let use_case = CreateProfileUseCase::new(Arc::new(mock_repo));
 
         let result = use_case.execute(input).await;
 
@@ -120,8 +69,8 @@ mod tests {
         let mut mock_repo = MockProfileRepository::new();
 
         let input = CreateProfileInput {
-            id: Uuid::now_v7().to_string(),
-            email: FreeEmail().fake(),
+            id: Id::generate(),
+            email: Email::try_new(FreeEmail().fake()).unwrap(),
         };
 
         mock_repo
@@ -131,7 +80,7 @@ mod tests {
 
         mock_repo.expect_save().times(1).return_const(Ok(()));
 
-        let use_case = CreateProfileUseCase::new(mock_repo);
+        let use_case = CreateProfileUseCase::new(Arc::new(mock_repo));
 
         let result = use_case.execute(input).await;
 

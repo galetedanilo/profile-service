@@ -1,2 +1,4 @@
-pub mod handlers;
+mod handlers;
+mod utils;
+
 pub mod service;

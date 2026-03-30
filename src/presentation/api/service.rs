@@ -1,4 +1,4 @@
-use std::net::SocketAddr;
+use std::{net::SocketAddr, sync::Arc};
 
 use axum::{
     Router,
@@ -8,15 +8,43 @@ use tower_governor::{GovernorLayer, governor::GovernorConfigBuilder};
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
+use crate::{
+    application::use_cases::{
+        create_profile::CreateProfileUseCase, get_profile_by_id::GetProfileByIdUseCase,
+        update_profile::UpdateProfileUseCase,
+    },
+    domain::repositories::profile_repo::ProfileRepository,
+    infrastructure::repositories::mongo_profile_repo::MongoProfileRepository,
+};
+
 use super::handlers::{
     create_profile::create_profile_handler, get_profile_by_id::get_profile_by_id_handler,
     update_profile_by_id::update_profile_by_id_handler,
 };
 
+#[derive(Clone)]
+pub struct AppState<R: ProfileRepository> {
+    pub create_profile_use_case: Arc<CreateProfileUseCase<R>>,
+    pub get_profile_by_id_use_case: Arc<GetProfileByIdUseCase<R>>,
+    pub update_profile_use_case: Arc<UpdateProfileUseCase<R>>,
+}
+
+impl<R: ProfileRepository> AppState<R> {
+    pub fn new(repository: Arc<R>) -> Self {
+        Self {
+            create_profile_use_case: Arc::new(CreateProfileUseCase::new(Arc::clone(&repository))),
+            get_profile_by_id_use_case: Arc::new(GetProfileByIdUseCase::new(Arc::clone(
+                &repository,
+            ))),
+            update_profile_use_case: Arc::new(UpdateProfileUseCase::new(Arc::clone(&repository))),
+        }
+    }
+}
+
 pub struct Service {}
 
 impl Service {
-    pub async fn run() {
+    pub async fn run(respository: MongoProfileRepository) {
         tracing_subscriber::registry()
             .with(tracing_subscriber::fmt::layer())
             .init();
@@ -28,14 +56,17 @@ impl Service {
             .unwrap();
 
         let routers = Router::new()
-            .route("/profiles", post(create_profile_handler))
+            .route("/", post(create_profile_handler))
             .route(
-                "/profiles/{id}",
+                "/{id}",
                 get(get_profile_by_id_handler).put(update_profile_by_id_handler),
             );
 
+        let state = AppState::new(Arc::new(respository));
+
         let app = Router::new()
-            .nest("/v1", routers)
+            .nest("/profiles", routers)
+            .with_state(state)
             .layer(TraceLayer::new_for_http())
             .layer(GovernorLayer::new(governor_conf));
 

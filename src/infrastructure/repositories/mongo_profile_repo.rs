@@ -1,14 +1,19 @@
+use std::sync::Arc;
+
 use serde::{Deserialize, Serialize};
 
-use crate::domain::{
-    models::profile::Profile,
-    object_values::{
-        bio::Bio, email::Email, first_name::FirstName, id::Id, image_url::ImageUrl,
-        last_name::LastName,
+use crate::{
+    domain::{
+        models::profile::Profile,
+        object_values::{
+            bio::Bio, email::Email, first_name::FirstName, id::Id, image_url::ImageUrl,
+            last_name::LastName,
+        },
+        repositories::profile_repo::{ProfileRepository, ProfileRepositoryError},
     },
-    repositories::profile_repo::{ProfileRepository, ProfileRepositoryError},
+    infrastructure::repositories::mongo_service::MongoService,
 };
-use mongodb::bson::doc;
+use mongodb::{Collection, bson::doc};
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ProfileDocument {
@@ -24,33 +29,27 @@ pub struct ProfileDocument {
 
 #[derive(Clone)]
 pub struct MongoProfileRepository {
-    client: mongodb::Client,
-    database: String,
-    collection: String,
+    collection: Collection<ProfileDocument>,
 }
 
 impl MongoProfileRepository {
-    pub fn new(client: mongodb::Client, database: String, collection: String) -> Self {
-        MongoProfileRepository {
-            client,
-            database,
-            collection,
-        }
+    pub fn new(mongo_service: Arc<MongoService>) -> Self {
+        let collection = mongo_service
+            .get_database()
+            .collection::<ProfileDocument>("profiles");
+
+        MongoProfileRepository { collection }
     }
 }
 
 #[async_trait::async_trait]
 impl ProfileRepository for MongoProfileRepository {
     async fn save(&self, profile: &Profile) -> Result<(), ProfileRepositoryError> {
-        let db = self.client.database(&self.database);
-        let collection = db.collection::<ProfileDocument>(&self.collection);
-
-        let mut doc: ProfileDocument = profile.clone().into();
+        let doc: ProfileDocument = profile.clone().into();
 
         if doc.version == 0 {
-            doc.version = 1;
-
-            return match collection
+            return match self
+                .collection
                 .insert_one(doc)
                 .await
                 .map_err(|e| ProfileRepositoryError::Unknown(e.to_string()))
@@ -62,9 +61,8 @@ impl ProfileRepository for MongoProfileRepository {
 
         let filter = doc! {"_id": doc.id.clone(), "version": doc.version as i64 - 1};
 
-        doc.version += 1;
-
-        let result = collection
+        let result = self
+            .collection
             .replace_one(filter, doc)
             .await
             .map_err(|e| ProfileRepositoryError::Unknown(e.to_string()))?;
@@ -79,10 +77,8 @@ impl ProfileRepository for MongoProfileRepository {
     }
 
     async fn get_profile_by_id(&self, id: &Id) -> Result<Option<Profile>, ProfileRepositoryError> {
-        let db = self.client.database(&self.database);
-        let collection = db.collection::<ProfileDocument>(&self.collection);
-
-        let document = collection
+        let document = self
+            .collection
             .find_one(doc! {"_id": id.to_string()})
             .await
             .map_err(|e| ProfileRepositoryError::Unknown(e.to_string()))?;

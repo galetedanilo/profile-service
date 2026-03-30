@@ -10,7 +10,7 @@ use crate::domain::{
 
 #[cfg_attr(test, automock)]
 #[async_trait::async_trait]
-pub trait ProfileRepository {
+pub trait ProfileRepository: Send + Sync + 'static {
     async fn save(&self, profile: &Profile) -> Result<(), ProfileRepositoryError>;
 
     async fn get_profile_by_id(&self, id: &Id) -> Result<Option<Profile>, ProfileRepositoryError>;
