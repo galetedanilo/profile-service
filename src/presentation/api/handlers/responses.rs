@@ -6,6 +6,7 @@ use crate::domain::models::profile::Profile;
 #[derive(Debug, Serialize)]
 pub struct ProfileResponse {
     pub id: String,
+    pub email: String,
     pub first_name: Option<String>,
     pub last_name: Option<String>,
     pub bio: Option<String>,
@@ -17,6 +18,7 @@ impl From<Profile> for ProfileResponse {
     fn from(profile: Profile) -> Self {
         Self {
             id: profile.id().to_string(),
+            email: profile.email().to_string(),
             first_name: profile.first_name().map(|f| f.to_string()),
             last_name: profile.last_name().map(|l| l.to_string()),
             bio: profile.bio().map(|b| b.to_string()),
