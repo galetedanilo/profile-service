@@ -35,11 +35,14 @@ mod tests {
 
     use super::*;
 
-    use crate::{domain::{
-        models::profile::Profile,
-        object_values::{email::Email, id::Id},
-        repositories::profile_repo::MockProfileRepository,
-    }, presentation::api::handlers::tests::SharedMockRepository};
+    use crate::{
+        domain::{
+            models::profile::Profile,
+            object_values::{email::Email, id::Id},
+            repositories::profile_repo::MockProfileRepository,
+        },
+        presentation::api::handlers::tests::SharedMockRepository,
+    };
 
     #[tokio::test]
     async fn when_valid_profile_data_is_provided_then_profile_is_created() {
@@ -115,11 +118,8 @@ mod tests {
             ))
             .unwrap();
 
-        // EXECUÇÃO: Envia a requisição para o App
-        // O método oneshot() consome o app e retorna a resposta
         let response = app.oneshot(request).await.unwrap();
 
-        // 5. Assertions
         assert_eq!(response.status(), StatusCode::CONFLICT);
     }
 }
