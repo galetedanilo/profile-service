@@ -2,10 +2,14 @@ use std::{net::SocketAddr, sync::Arc};
 
 use axum::{
     Router,
+    http::{
+        HeaderValue, Method,
+        header::{AUTHORIZATION, CONTENT_TYPE},
+    },
     routing::{get, post},
 };
 use tower_governor::{GovernorLayer, governor::GovernorConfigBuilder};
-use tower_http::trace::TraceLayer;
+use tower_http::{cors::CorsLayer, trace::TraceLayer};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 use crate::{
@@ -44,10 +48,16 @@ impl<R: ProfileRepository> AppState<R> {
 pub struct Service {}
 
 impl Service {
-    pub async fn run(respository: MongoProfileRepository) {
+    pub async fn run(respository: MongoProfileRepository, request_host: String, addr: String) {
         tracing_subscriber::registry()
             .with(tracing_subscriber::fmt::layer())
             .init();
+
+        let cors_layer = CorsLayer::new()
+            .allow_methods([Method::GET, Method::POST, Method::PUT])
+            .allow_origin(HeaderValue::from_str(&request_host).unwrap())
+            .allow_headers([AUTHORIZATION, CONTENT_TYPE])
+            .allow_credentials(true);
 
         let governor_conf = GovernorConfigBuilder::default()
             .per_second(2)
@@ -68,11 +78,10 @@ impl Service {
             .nest("/profiles", routers)
             .with_state(state)
             .layer(TraceLayer::new_for_http())
-            .layer(GovernorLayer::new(governor_conf));
+            .layer(GovernorLayer::new(governor_conf))
+            .layer(cors_layer);
 
-        let listener = tokio::net::TcpListener::bind("127.0.0.2:3000")
-            .await
-            .unwrap();
+        let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
         axum::serve(
             listener,
             app.into_make_service_with_connect_info::<SocketAddr>(),
