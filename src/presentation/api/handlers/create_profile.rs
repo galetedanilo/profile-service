@@ -5,12 +5,14 @@ use crate::{
     domain::repositories::profile_repo::ProfileRepository,
     presentation::api::{
         handlers::requests::CreateProfileRequest,
+        security::CreateClaims,
         service::AppState,
         utils::{AppErrorResponse, ValidatedJson},
     },
 };
 
 pub async fn create_profile_handler<R: ProfileRepository>(
+    _create_claims: CreateClaims,
     State(state): State<AppState<R>>,
     ValidatedJson(input): ValidatedJson<CreateProfileRequest>,
 ) -> Result<StatusCode, AppErrorResponse> {
@@ -41,7 +43,9 @@ mod tests {
             object_values::{email::Email, id::Id},
             repositories::profile_repo::MockProfileRepository,
         },
-        presentation::api::handlers::tests::SharedMockRepository,
+        presentation::api::handlers::tests::{
+            SharedMockRepository, create_test_token, get_test_decoding_key,
+        },
     };
 
     #[tokio::test]
@@ -58,17 +62,23 @@ mod tests {
         // Envolve o mock no Wrapper clonável
         let shared_repo = SharedMockRepository(Arc::new(mock_repo));
 
-        let app_state = AppState::new(Arc::new(shared_repo));
+        let decoding_key = get_test_decoding_key();
+
+        let app_state = AppState::new(Arc::new(shared_repo), Arc::new(decoding_key));
 
         let app = Router::new()
             .route("/profiles", post(create_profile_handler))
             .with_state(app_state);
+
+        let profile_id = Uuid::now_v7().to_string();
+        let token = create_test_token();
 
         // Constrói a requisição HTTP simulada
         let request = Request::builder()
             .method("POST")
             .uri("/profiles")
             .header("content-type", "application/json")
+            .header("authorization", format!("Bearer {}", token))
             .body(Body::from(
                 json!({
                     "id": Uuid::now_v7().to_string(),
@@ -99,7 +109,12 @@ mod tests {
 
         let shared_repo = SharedMockRepository(Arc::new(mock_repo));
 
-        let app_state = AppState::new(Arc::new(shared_repo));
+        let decoding_key = get_test_decoding_key();
+
+        let app_state = AppState::new(Arc::new(shared_repo), Arc::new(decoding_key));
+
+        let profile_id = Uuid::now_v7().to_string();
+        let token = create_test_token();
 
         let app = Router::new()
             .route("/profiles", post(create_profile_handler))
@@ -109,9 +124,10 @@ mod tests {
             .method("POST")
             .uri("/profiles")
             .header("content-type", "application/json")
+            .header("authorization", format!("Bearer {}", token))
             .body(Body::from(
                 json!({
-                    "id": Uuid::now_v7().to_string(),
+                    "id": profile_id,
                     "email": "teste@email.com"
                 })
                 .to_string(),
