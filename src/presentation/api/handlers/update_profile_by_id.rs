@@ -8,11 +8,13 @@ use crate::{
     application::dtos::update_profile_input::UpdateProfileInput,
     domain::repositories::profile_repo::ProfileRepository,
     presentation::api::{
-        handlers::requests::UpdateProfileRequest, service::AppState, utils::AppErrorResponse,
+        handlers::requests::UpdateProfileRequest, security::UpdateClaims, service::AppState,
+        utils::AppErrorResponse,
     },
 };
 
 pub async fn update_profile_by_id_handler<R: ProfileRepository>(
+    _update_claims: UpdateClaims,
     State(state): State<AppState<R>>,
     Path(id): Path<String>,
     Json(input): Json<UpdateProfileRequest>,
@@ -47,6 +49,7 @@ mod tests {
 
     use crate::domain::models::profile::Profile;
     use crate::domain::object_values::email::Email;
+    use crate::presentation::api::handlers::tests::{create_test_token, get_test_decoding_key};
     use crate::{
         domain::repositories::profile_repo::MockProfileRepository,
         presentation::api::{handlers::tests::SharedMockRepository, service::AppState},
@@ -65,7 +68,10 @@ mod tests {
 
         let shared_repo = SharedMockRepository(Arc::new(mock_repo));
 
-        let app_state = AppState::new(Arc::new(shared_repo));
+        let decoding_key = get_test_decoding_key();
+
+        let app_state = AppState::new(Arc::new(shared_repo), Arc::new(decoding_key));
+        let token = create_test_token();
 
         let app = Router::new()
             .route("/profiles/{id}", put(update_profile_by_id_handler))
@@ -75,6 +81,7 @@ mod tests {
             .method("PUT")
             .uri("/profiles/123e4567-e89b-12d3-a456-426614174000")
             .header("content-type", "application/json")
+            .header("authorization", format!("Bearer {}", token))
             .body(Body::from(
                 json!({
                     "first_name": FirstName().fake::<String>(),
@@ -113,7 +120,10 @@ mod tests {
 
         let shared_repo = SharedMockRepository(Arc::new(mock_repo));
 
-        let app_state = AppState::new(Arc::new(shared_repo));
+        let decoding_key = get_test_decoding_key();
+
+        let app_state = AppState::new(Arc::new(shared_repo), Arc::new(decoding_key));
+        let token = create_test_token();
 
         let app = Router::new()
             .route("/profiles/{id}", put(update_profile_by_id_handler))
@@ -123,6 +133,7 @@ mod tests {
             .method("PUT")
             .uri("/profiles/123e4567-e89b-12d3-a456-426614174000")
             .header("content-type", "application/json")
+            .header("authorization", format!("Bearer {}", token))
             .body(Body::from(
                 json!({
                     "first_name": FirstName().fake::<String>(),
@@ -159,7 +170,10 @@ mod tests {
 
         let shared_repo = SharedMockRepository(Arc::new(mock_repo));
 
-        let app_state = AppState::new(Arc::new(shared_repo));
+        let decoding_key = get_test_decoding_key();
+
+        let app_state = AppState::new(Arc::new(shared_repo), Arc::new(decoding_key));
+        let token = create_test_token();
 
         let app = Router::new()
             .route("/profiles/{id}", put(update_profile_by_id_handler))
@@ -169,6 +183,7 @@ mod tests {
             .method("PUT")
             .uri("/profiles/123e4567-e89b-12d3-a456-426614174000")
             .header("content-type", "application/json")
+            .header("authorization", format!("Bearer {}", token))
             .body(Body::from(
                 json!({
                     "first_name": FirstName().fake::<String>(),

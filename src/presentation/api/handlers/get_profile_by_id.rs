@@ -4,11 +4,13 @@ use crate::{
     application::dtos::get_profile_by_id_input::GetProfileByIdInput,
     domain::repositories::profile_repo::ProfileRepository,
     presentation::api::{
-        handlers::responses::ProfileResponse, service::AppState, utils::AppErrorResponse,
+        handlers::responses::ProfileResponse, security::ReadClaims, service::AppState,
+        utils::AppErrorResponse,
     },
 };
 
 pub async fn get_profile_by_id_handler<R: ProfileRepository>(
+    _read_claims: ReadClaims,
     State(state): State<AppState<R>>,
     Path(id): Path<String>,
 ) -> Result<ProfileResponse, AppErrorResponse> {
@@ -35,7 +37,9 @@ mod tests {
             models::profile::Profile, object_values::email::Email,
             repositories::profile_repo::MockProfileRepository,
         },
-        presentation::api::handlers::tests::SharedMockRepository,
+        presentation::api::handlers::tests::{
+            SharedMockRepository, create_test_token, get_test_decoding_key,
+        },
     };
 
     use super::*;
@@ -61,7 +65,11 @@ mod tests {
 
         let shared_repo = SharedMockRepository(Arc::new(mock_repo));
 
-        let app_state = AppState::new(Arc::new(shared_repo));
+        let decoding_key = get_test_decoding_key();
+
+        let app_state = AppState::new(Arc::new(shared_repo), Arc::new(decoding_key));
+
+        let token = create_test_token();
 
         let app = Router::new()
             .route("/profiles/{id}", get(get_profile_by_id_handler))
@@ -69,6 +77,7 @@ mod tests {
 
         let request = Request::builder()
             .method("GET")
+            .header("authorization", format!("Bearer {}", token))
             .uri("/profiles/123e4567-e89b-12d3-a456-426614174000")
             .body(Body::empty())
             .unwrap();
@@ -89,7 +98,10 @@ mod tests {
 
         let shared_repo = SharedMockRepository(Arc::new(mock_repo));
 
-        let app_state = AppState::new(Arc::new(shared_repo));
+        let decoding_key = get_test_decoding_key();
+
+        let app_state = AppState::new(Arc::new(shared_repo), Arc::new(decoding_key));
+        let token = create_test_token();
 
         let app = Router::new()
             .route("/profiles/{id}", get(get_profile_by_id_handler))
@@ -97,6 +109,7 @@ mod tests {
 
         let request = Request::builder()
             .method("GET")
+            .header("authorization", format!("Bearer {}", token))
             .uri("/profiles/123e4567-e89b-12d3-a456-426614174000")
             .body(Body::empty())
             .unwrap();

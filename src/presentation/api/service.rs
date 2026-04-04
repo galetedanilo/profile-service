@@ -8,6 +8,7 @@ use axum::{
     },
     routing::{get, post},
 };
+use jsonwebtoken::DecodingKey;
 use tower_governor::{GovernorLayer, governor::GovernorConfigBuilder};
 use tower_http::{cors::CorsLayer, trace::TraceLayer};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
@@ -31,16 +32,18 @@ pub struct AppState<R: ProfileRepository> {
     pub create_profile_use_case: Arc<CreateProfileUseCase<R>>,
     pub get_profile_by_id_use_case: Arc<GetProfileByIdUseCase<R>>,
     pub update_profile_use_case: Arc<UpdateProfileUseCase<R>>,
+    pub decoding_key: Arc<DecodingKey>,
 }
 
 impl<R: ProfileRepository> AppState<R> {
-    pub fn new(repository: Arc<R>) -> Self {
+    pub fn new(repository: Arc<R>, decoding_key: Arc<DecodingKey>) -> Self {
         Self {
             create_profile_use_case: Arc::new(CreateProfileUseCase::new(Arc::clone(&repository))),
             get_profile_by_id_use_case: Arc::new(GetProfileByIdUseCase::new(Arc::clone(
                 &repository,
             ))),
             update_profile_use_case: Arc::new(UpdateProfileUseCase::new(Arc::clone(&repository))),
+            decoding_key,
         }
     }
 }
@@ -72,7 +75,12 @@ impl Service {
                 get(get_profile_by_id_handler).put(update_profile_by_id_handler),
             );
 
-        let state = AppState::new(Arc::new(respository));
+        let pem_content =
+            std::fs::read("./keys/public_key.pem").expect("Failed to view EdDSA public key");
+
+        let decoding_key = DecodingKey::from_ed_pem(&pem_content).expect("Invalid EdDSA key");
+
+        let state = AppState::new(Arc::new(respository), Arc::new(decoding_key));
 
         let app = Router::new()
             .nest("/profiles", routers)

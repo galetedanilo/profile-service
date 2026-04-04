@@ -8,17 +8,17 @@ O projeto está sendo estruturado seguindo as camadas do DDD:
 
 - **Domain:** Entidades, Objetos de Valor e Regras de Negócio (Lógica pura).
 - **Application:** Casos de uso (Use Cases) que orquestram a lógica da aplicação.
-- **Infrastructure:** Implementações técnicas (MongoDB, adaptadores de rede). (Em desenvolvimento)
+- **Infrastructure:** Implementações técnicas (MongoDB, adaptadores de rede).
 - **Presentation/API:** Camada de entrada (Axum Handlers). (Em desenvolvimento)
 
 ## 🛡️ Health & Fitness Functions
-   
+
 ### Status da Fitness Function
 
 [ ![Nome do Badge](https://github.com/galetedanilo/profile-service/actions/workflows/fitness.yml/badge.svg) ](https://github.com/galetedanilo/profile-service/actions/workflows/fitness.yml)
 
-
 ### Regras de Aptidão (Fitness Rules):
+
 - **Cobertura Mínima:** 80% (Linhas de código)
 - **Complexidade Máxima:** Clippy Cognitive Threshold
 - **Status:** Automatizado via GitHub Actions
@@ -39,9 +39,10 @@ src/
 - **Linguagem:** [Rust](https://www.rust-lang.org)
 - **Framework Web:** [Axum](https://github.com/tokio-rs/axum)
 - **Runtime:** [Tokio](https://tokio.rs)
-- **Banco de Dados:** [MongoDB](https://www.mongodb.com) (Pendente implementação)
-- **Serialização:** [Serde](https://serde.rs) (Pendente implementação)
-- **Validação:** [Validify](https://github.com/biblius/validify) (Validação e transformação de dados de entrada)
+- **Banco de Dados:** [MongoDB](https://www.mongodb.com)
+- **Serialização:** [Serde](https://serde.rs)
+- **Validação:** [Validify](https://github.com/biblius/validify)
+- **Segurança:** [Jsonwebtoken](https://docs.rs/jsonwebtoken/latest/jsonwebtoken/)
 
 ## 🛠 Fitness Functions
 
@@ -54,12 +55,13 @@ Se o build falhar, verifique se você adicionou testes para as novas funcionalid
 
 ## 📋 Status dos Endpoints (API)
 
-| Método | Endpoint        | Descrição                 | Status                               |
-| :----- | :-------------- | :------------------------ | :----------------------------------- |
-| `GET`  | `/health`       | Check de saúde do sistema | 🚧 Em progresso (Application/Domain) |
-| `POST` | `/profiles`     | Criar um novo perfil      | ✅ Concluído |
-| `GET`  | `/profiles/:id` | Buscar perfil por ID      | ✅ Concluído |
-| `PUT`  | `/profiles/:id` | Atualizar dados do perfil | ✅ Concluído |
+| Método   | Endpoint        | Descrição                 | Status                               |
+| :------- | :-------------- | :------------------------ | :----------------------------------- |
+| `GET`    | `/health`       | Check de saúde do sistema | 🚧 Em progresso (Application/Domain) |
+| `POST`   | `/profiles`     | Criar um novo perfil      | ✅ Concluído                         |
+| `GET`    | `/profiles/:id` | Buscar perfil por ID      | ✅ Concluído                         |
+| `PUT`    | `/profiles/:id` | Atualizar dados do perfil | ✅ Concluído                         |
+| `DELETE` | `/profiles/:id` | Deleta um profile         | 🚧 Em progresso (Application/Domain) |
 
 ## 🧪 Testes
 
