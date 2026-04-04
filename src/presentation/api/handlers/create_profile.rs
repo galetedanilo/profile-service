@@ -70,7 +70,6 @@ mod tests {
             .route("/profiles", post(create_profile_handler))
             .with_state(app_state);
 
-        let profile_id = Uuid::now_v7().to_string();
         let token = create_test_token();
 
         // Constrói a requisição HTTP simulada
