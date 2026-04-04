@@ -94,7 +94,7 @@ where
         value.validate().map_err(|e| {
             let error_messages: Vec<String> = e
                 .errors()
-                .into_iter()
+                .iter()
                 .map(|err| {
                     format!(
                         "'{}': '{}'",

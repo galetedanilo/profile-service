@@ -83,7 +83,7 @@ impl ProfileRepository for MongoProfileRepository {
             .await
             .map_err(|e| ProfileRepositoryError::Unknown(e.to_string()))?;
 
-        Ok(document.map(|doc| Profile::try_from(doc)).transpose()?)
+        Ok(document.map(Profile::try_from).transpose()?)
     }
 }
 
@@ -111,22 +111,22 @@ impl TryFrom<ProfileDocument> for Profile {
             .map_err(|e| ProfileRepositoryError::InvalidData(e.to_string()))?;
         let first_name = doc
             .first_name
-            .map(|f| FirstName::try_from(f))
+            .map(FirstName::try_from)
             .transpose()
             .map_err(|e| ProfileRepositoryError::InvalidData(e.to_string()))?;
         let last_name = doc
             .last_name
-            .map(|f| LastName::try_from(f))
+            .map(LastName::try_from)
             .transpose()
             .map_err(|e| ProfileRepositoryError::InvalidData(e.to_string()))?;
         let bio = doc
             .bio
-            .map(|b| Bio::try_from(b))
+            .map(Bio::try_from)
             .transpose()
             .map_err(|e| ProfileRepositoryError::InvalidData(e.to_string()))?;
         let profile_image_url = doc
             .profile_image_url
-            .map(|f| ImageUrl::try_from(f))
+            .map(ImageUrl::try_from)
             .transpose()
             .map_err(|e| ProfileRepositoryError::InvalidData(e.to_string()))?;
 

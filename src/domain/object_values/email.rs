@@ -33,7 +33,7 @@ impl Email {
             return Err(EmailError::TooLong(Self::MAX_LENGTH));
         }
 
-        if !Self::is_valid_email(&trimmed) {
+        if !Self::is_valid_email(trimmed) {
             return Err(EmailError::Invalid);
         }
 
@@ -41,7 +41,7 @@ impl Email {
     }
 
     pub fn is_valid_email(email: &str) -> bool {
-        EMAIL_REGEX.is_match(&email)
+        EMAIL_REGEX.is_match(email)
     }
 
     pub fn into_inner(self) -> String {

@@ -94,7 +94,7 @@ where
                 details: None,
             })?;
 
-        // 2. Configura a validação (ajuste o algoritmo se não for RS256)
+        // 2. Configura a validação
         let mut validation = Validation::new(Algorithm::EdDSA);
 
         // Defina qual "ID" este microserviço aceita
@@ -104,18 +104,15 @@ where
         // Garante que a validação de expiração e assinatura ocorra
         validation.validate_exp = true;
 
-        println!("OLA ########################################");
-
         let token_data =
             decode::<Claims>(token, &state.decoding_key, &validation).map_err(|e| {
-                println!("Token validation error: {:?}", e.kind());
-                return AppErrorResponse {
+                AppErrorResponse {
                     message: format!("Token validation error: {}", e),
                     status_code: StatusCode::UNAUTHORIZED.as_u16(),
                     timestamp: Utc::now(),
                     code: None,
                     details: None,
-                };
+                }
             })?;
 
         // Verifica se o token foi emitido para o Profile Service
