@@ -14,7 +14,7 @@ use crate::{
 };
 
 pub async fn update_profile_by_id_handler<R: ProfileRepository>(
-    _update_claims: UpdateClaims,
+    _: UpdateClaims,
     State(state): State<AppState<R>>,
     Path(id): Path<String>,
     Json(input): Json<UpdateProfileRequest>,
@@ -25,7 +25,6 @@ pub async fn update_profile_by_id_handler<R: ProfileRepository>(
         input.last_name,
         input.bio,
         input.profile_image_url,
-        input.version,
     )?;
 
     state
@@ -86,7 +85,6 @@ mod tests {
                 json!({
                     "first_name": FirstName().fake::<String>(),
                     "last_name": LastName().fake::<String>(),
-                    "version": 1
                 })
                 .to_string(),
             ))
@@ -105,14 +103,16 @@ mod tests {
             .expect_get_profile_by_id()
             .times(1)
             .returning(|id| {
-                Ok(Some(Profile::new_from(
+                Ok(Some(Profile::from_parts(
                     id.clone(),
                     Email::try_from("john.doe@example.com").unwrap(),
                     None,
                     None,
                     None,
                     None,
-                    1,
+                    chrono::Utc::now(),
+                    None,
+                    2,
                 )))
             });
 
@@ -138,7 +138,6 @@ mod tests {
                 json!({
                     "first_name": FirstName().fake::<String>(),
                     "last_name": LastName().fake::<String>(),
-                    "version": 1
                 })
                 .to_string(),
             ))
@@ -157,14 +156,16 @@ mod tests {
             .expect_get_profile_by_id()
             .times(1)
             .returning(|id| {
-                Ok(Some(Profile::new_from(
+                Ok(Some(Profile::from_parts(
                     id.clone(),
                     Email::try_from("john.doe@example.com").unwrap(),
                     None,
                     None,
                     None,
                     None,
-                    1,
+                    chrono::Utc::now(),
+                    Some(chrono::Utc::now() + chrono::Duration::hours(1)),
+                    2,
                 )))
             });
 
@@ -188,7 +189,6 @@ mod tests {
                 json!({
                     "first_name": FirstName().fake::<String>(),
                     "last_name": LastName().fake::<String>(),
-                    "version": 2
                 })
                 .to_string(),
             ))

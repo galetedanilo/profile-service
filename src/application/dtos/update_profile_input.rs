@@ -12,7 +12,6 @@ pub struct UpdateProfileInput {
     pub last_name: Option<LastName>,
     pub bio: Option<Bio>,
     pub profile_image_url: Option<ImageUrl>,
-    pub version: u64,
 }
 
 impl UpdateProfileInput {
@@ -22,7 +21,6 @@ impl UpdateProfileInput {
         last_name: Option<String>,
         bio: Option<String>,
         profile_image_url: Option<String>,
-        version: u64,
     ) -> Result<Self, ProfileError> {
         let id = Id::try_from(id)?;
 
@@ -30,14 +28,13 @@ impl UpdateProfileInput {
         let last_name = last_name.map(LastName::try_from).transpose()?;
         let bio = bio.map(Bio::try_from).transpose()?;
         let profile_image_url = profile_image_url.map(ImageUrl::try_from).transpose()?;
-        
+
         Ok(Self {
             id,
             first_name,
             last_name,
             bio,
             profile_image_url,
-            version,
         })
     }
 }

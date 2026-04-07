@@ -24,8 +24,10 @@ impl<R: ProfileRepository + Send + Sync> UpdateProfileUseCase<R> {
     ) -> Result<Option<Profile>, ProfileError> {
         let profile = self.repository.get_profile_by_id(&input.id).await?;
 
+        let now = chrono::Utc::now();
+
         if let Some(mut profile) = profile {
-            if input.version != profile.version() {
+            if profile.updated_at().unwrap_or(profile.created_at()) > now {
                 return Err(ProfileError::VersionConflict(
                     "Version mismatch".to_string(),
                 ));
@@ -68,14 +70,16 @@ mod tests {
 
         let id = Uuid::now_v7().to_string();
 
-        let existing_profile = Profile::new_from(
+        let existing_profile = Profile::from_parts(
             Id::try_from(id.clone()).unwrap(),
             Email::try_from("existing@example.com").unwrap(),
             None,
             None,
             None,
             None,
-            3,
+            chrono::Utc::now(),
+            Some(chrono::Utc::now() + chrono::Duration::hours(2)),
+            2,
         );
 
         mock_repo
@@ -85,7 +89,7 @@ mod tests {
 
         let use_case = UpdateProfileUseCase::new(Arc::new(mock_repo));
 
-        let input = UpdateProfileInput::try_new(id.clone(), None, None, None, None, 2).unwrap();
+        let input = UpdateProfileInput::try_new(id.clone(), None, None, None, None).unwrap();
 
         let result = use_case.execute(input).await;
 
@@ -105,8 +109,8 @@ mod tests {
 
         let use_case = UpdateProfileUseCase::new(Arc::new(mock_repo));
 
-        let input = UpdateProfileInput::try_new(non_existent_id.clone(), None, None, None, None, 2)
-            .unwrap();
+        let input =
+            UpdateProfileInput::try_new(non_existent_id.clone(), None, None, None, None).unwrap();
 
         let result = use_case.execute(input).await;
 
@@ -132,13 +136,15 @@ mod tests {
         let bio = Bio::try_from(fake_bio.clone()).unwrap();
         let profile_image_url = ImageUrl::try_from(fake_profile_image_url.clone()).unwrap();
 
-        let existing_profile = Profile::new_from(
+        let existing_profile = Profile::from_parts(
             id,
             email,
             Some(first_name),
             Some(last_name),
             Some(bio),
             Some(profile_image_url),
+            chrono::Utc::now() - chrono::Duration::hours(1),
+            None,
             1,
         );
 
@@ -157,7 +163,6 @@ mod tests {
             Some(fake_last_name.clone()),
             Some(fake_bio.clone()),
             Some(fake_profile_image_url.clone()),
-            1,
         )
         .unwrap();
 

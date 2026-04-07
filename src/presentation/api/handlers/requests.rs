@@ -57,11 +57,4 @@ pub struct UpdateProfileRequest {
         message = "Profile image URL must be between 5 and 2048 characters"
     ))]
     pub profile_image_url: Option<String>,
-
-    // #[validate(range(
-    //     min = "1",
-    //     max = "1000",
-    //     message = "Version must be a positive integer"
-    // ))]
-    pub version: u64,
 }
