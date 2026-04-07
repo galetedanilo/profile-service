@@ -10,7 +10,7 @@ use crate::{
 };
 
 pub async fn get_profile_by_id_handler<R: ProfileRepository>(
-    _read_claims: ReadClaims,
+    _: ReadClaims,
     State(state): State<AppState<R>>,
     Path(id): Path<String>,
 ) -> Result<ProfileResponse, AppErrorResponse> {
@@ -52,12 +52,14 @@ mod tests {
             .expect_get_profile_by_id()
             .times(1)
             .returning(|id| {
-                Ok(Some(Profile::new_from(
+                Ok(Some(Profile::from_parts(
                     id.clone(),
                     Email::try_from(FreeEmail().fake::<String>()).unwrap(),
                     None,
                     None,
                     None,
+                    None,
+                    chrono::Utc::now(),
                     None,
                     2,
                 )))

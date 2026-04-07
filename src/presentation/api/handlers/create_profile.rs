@@ -12,7 +12,7 @@ use crate::{
 };
 
 pub async fn create_profile_handler<R: ProfileRepository>(
-    _create_claims: CreateClaims,
+    _: CreateClaims,
     State(state): State<AppState<R>>,
     ValidatedJson(input): ValidatedJson<CreateProfileRequest>,
 ) -> Result<StatusCode, AppErrorResponse> {
