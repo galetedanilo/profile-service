@@ -15,8 +15,8 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 use crate::{
     application::use_cases::{
-        create_profile::CreateProfileUseCase, get_profile_by_id::GetProfileByIdUseCase,
-        update_profile::UpdateProfileUseCase,
+        create_profile_use_case::CreateProfileUseCase, get_profile_by_id_use_case::GetProfileByIdUseCase,
+        update_profile_use_case::UpdateProfileUseCase,
     },
     domain::repositories::profile_repo::ProfileRepository,
     infrastructure::repositories::mongo_profile_repo::MongoProfileRepository,

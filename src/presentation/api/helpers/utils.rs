@@ -119,7 +119,8 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::presentation::api::handlers::requests::CreateProfileRequest;
+
+    use crate::presentation::api::requests::create_profile_request::CreateProfileRequest;
 
     use super::*;
     use axum::{Router, body::Body, http::Request, routing::post};
