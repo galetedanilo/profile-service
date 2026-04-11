@@ -5,11 +5,12 @@ use axum::{
 };
 
 use crate::{
-    application::dtos::update_profile_input::UpdateProfileInput,
+    application::inputs::update_profile_input::UpdateProfileInput,
     domain::repositories::profile_repo::ProfileRepository,
     presentation::api::{
-        handlers::requests::UpdateProfileRequest, security::UpdateClaims, service::AppState,
-        utils::AppErrorResponse,
+        helpers::{security::UpdateClaims, utils::AppErrorResponse},
+        requests::update_profile_request::UpdateProfileRequest,
+        service::AppState,
     },
 };
 

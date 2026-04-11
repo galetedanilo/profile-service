@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use crate::{
-    application::dtos::create_profile_input::CreateProfileInput,
+    application::inputs::create_profile_input::CreateProfileInput,
     domain::{
         models::profile::{Profile, ProfileError},
         repositories::profile_repo::ProfileRepository,

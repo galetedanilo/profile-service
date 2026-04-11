@@ -1,11 +1,12 @@
 use axum::extract::{Path, State};
 
 use crate::{
-    application::dtos::get_profile_by_id_input::GetProfileByIdInput,
+    application::inputs::get_profile_by_id_input::GetProfileByIdInput,
     domain::repositories::profile_repo::ProfileRepository,
     presentation::api::{
-        handlers::responses::ProfileResponse, security::ReadClaims, service::AppState,
-        utils::AppErrorResponse,
+        helpers::{security::ReadClaims, utils::AppErrorResponse},
+        responses::profile_response::ProfileResponse,
+        service::AppState,
     },
 };
 

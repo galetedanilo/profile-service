@@ -1,13 +1,15 @@
 use axum::{extract::State, http::StatusCode};
 
 use crate::{
-    application::dtos::create_profile_input::CreateProfileInput,
+    application::inputs::create_profile_input::CreateProfileInput,
     domain::repositories::profile_repo::ProfileRepository,
     presentation::api::{
-        handlers::requests::CreateProfileRequest,
-        security::CreateClaims,
+        helpers::{
+            security::CreateClaims,
+            utils::{AppErrorResponse, ValidatedJson},
+        },
+        requests::create_profile_request::CreateProfileRequest,
         service::AppState,
-        utils::{AppErrorResponse, ValidatedJson},
     },
 };
 
