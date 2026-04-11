@@ -1,3 +1,3 @@
-pub mod create_profile;
-pub mod get_profile_by_id;
-pub mod update_profile;
+pub mod create_profile_use_case;
+pub mod get_profile_by_id_use_case;
+pub mod update_profile_use_case;
