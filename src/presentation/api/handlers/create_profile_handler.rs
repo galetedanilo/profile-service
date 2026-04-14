@@ -5,11 +5,11 @@ use crate::{
     domain::repositories::profile_repo::ProfileRepository,
     presentation::api::{
         helpers::{
+            app_state::AppState,
             security::CreateClaims,
             utils::{AppErrorResponse, ValidatedJson},
         },
         requests::create_profile_request::CreateProfileRequest,
-        service::AppState,
     },
 };
 
