@@ -8,14 +8,17 @@ pub struct MongoService {
 
 impl MongoService {
     pub async fn new(
+        db_protocol: String,
         username: String,
         password: String,
         hostname: String,
         database: String,
     ) -> Result<Self> {
+        let encoded_pass = urlencoding::encode(&password);
+
         let uri = format!(
-            "mongodb://{}:{}@{}/{}",
-            username, password, hostname, database
+            "{}://{}:{}@{}/{}",
+            db_protocol, username, encoded_pass, hostname, database
         );
 
         let mut client_options = ClientOptions::parse(uri).await?;

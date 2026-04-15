@@ -36,10 +36,11 @@ impl Service {
             std::env::var("REQUEST_HOST").expect("REQUEST_HOST must be set"),
             std::env::var("SERVICE_ADDR").expect("SERVICE_ADDR must be set"),
             std::env::var("PUBLIC_KEY_PATH").expect("PUBLIC_KEY_PATH must be set"),
-            std::env::var("HOSTNAME").expect("HOSTNAME must be set"),
-            std::env::var("DATABASE").expect("DATABASE must be set"),
-            std::env::var("USERNAME").expect("USERNAME must be set"),
-            std::env::var("PASSWORD").expect("PASSWORD must be set"),
+            std::env::var("MONGO_DB_PROTOCOL").expect("MONGO_DB_PROTOCOL must be set"),
+            std::env::var("MONGO_HOSTNAME").expect("MONGO_HOSTNAME must be set"),
+            std::env::var("MONGO_DATABASE").expect("MONGO_DATABASE must be set"),
+            std::env::var("MONGO_USERNAME").expect("MONGO_USERNAME must be set"),
+            std::env::var("MONGO_PASSWORD").expect("MONGO_PASSWORD must be set"),
         );
 
         Service { config }
@@ -75,6 +76,7 @@ impl Service {
         let decoding_key = DecodingKey::from_ed_pem(&pem_content).expect("Invalid EdDSA key");
 
         let mongo_service = MongoService::new(
+            self.config.db_protocol.clone(),
             self.config.username.clone(),
             self.config.password.clone(),
             self.config.hostname.clone(),
