@@ -4,9 +4,8 @@ use crate::{
     application::inputs::get_profile_by_id_input::GetProfileByIdInput,
     domain::repositories::profile_repo::ProfileRepository,
     presentation::api::{
-        helpers::{security::ReadClaims, utils::AppErrorResponse},
+        helpers::{app_state::AppState, security::ReadClaims, utils::AppErrorResponse},
         responses::profile_response::ProfileResponse,
-        service::AppState,
     },
 };
 

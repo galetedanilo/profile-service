@@ -7,17 +7,18 @@ pub struct MongoService {
 }
 
 impl MongoService {
-    pub async fn new() -> Result<Self> {
-        let host = std::env::var("MONGO_HOST").unwrap_or_else(|_| "localhost".to_string());
-        let port = std::env::var("MONGO_PORT").unwrap_or_else(|_| "27017".to_string());
-        let username = std::env::var("MONGO_USERNAME").unwrap_or_else(|_| "root".to_string());
-        let password = std::env::var("MONGO_PASSWORD").unwrap_or_else(|_| "password".to_string());
-        let database =
-            std::env::var("MONGO_DATABASE").unwrap_or_else(|_| "profile_service".to_string());
+    pub async fn new(
+        db_protocol: String,
+        username: String,
+        password: String,
+        hostname: String,
+        database: String,
+    ) -> Result<Self> {
+        let encoded_pass = urlencoding::encode(&password);
 
         let uri = format!(
-            "mongodb://{}:{}@{}:{}/{}",
-            username, password, host, port, database
+            "{}://{}:{}@{}/{}",
+            db_protocol, username, encoded_pass, hostname, database
         );
 
         let mut client_options = ClientOptions::parse(uri).await?;

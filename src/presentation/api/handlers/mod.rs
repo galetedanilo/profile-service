@@ -1,6 +1,6 @@
-pub mod create_profile;
-pub mod get_profile_by_id;
-pub mod update_profile_by_id;
+pub mod create_profile_handler;
+pub mod get_profile_by_id_handler;
+pub mod update_profile_by_id_handler;
 
 #[cfg(test)]
 pub mod tests {

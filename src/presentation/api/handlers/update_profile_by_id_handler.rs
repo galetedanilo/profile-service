@@ -8,9 +8,8 @@ use crate::{
     application::inputs::update_profile_input::UpdateProfileInput,
     domain::repositories::profile_repo::ProfileRepository,
     presentation::api::{
-        helpers::{security::UpdateClaims, utils::AppErrorResponse},
+        helpers::{app_state::AppState, security::UpdateClaims, utils::AppErrorResponse},
         requests::update_profile_request::UpdateProfileRequest,
-        service::AppState,
     },
 };
 
@@ -52,7 +51,7 @@ mod tests {
     use crate::presentation::api::handlers::tests::{create_test_token, get_test_decoding_key};
     use crate::{
         domain::repositories::profile_repo::MockProfileRepository,
-        presentation::api::{handlers::tests::SharedMockRepository, service::AppState},
+        presentation::api::{handlers::tests::SharedMockRepository, helpers::app_state::AppState},
     };
 
     use super::*;
