@@ -5,9 +5,8 @@ use crate::{
     domain::repositories::profile_repo::ProfileRepository,
     presentation::api::{
         helpers::{
-            app_state::AppState,
-            security::CreateClaims,
-            utils::{AppErrorResponse, ValidatedJson},
+            app_error::AppErrorResponse, app_state::AppState, security::CreateClaims,
+            validated_json::ValidatedJson,
         },
         requests::create_profile_request::CreateProfileRequest,
     },

@@ -11,7 +11,7 @@ use strum_macros::{AsRefStr, Display, EnumString};
 
 use crate::{
     domain::repositories::profile_repo::ProfileRepository,
-    presentation::api::helpers::{app_state::AppState, utils::AppErrorResponse},
+    presentation::api::helpers::{app_error::AppErrorResponse, app_state::AppState},
 };
 
 #[derive(

@@ -8,7 +8,7 @@ use crate::{
     application::inputs::update_profile_input::UpdateProfileInput,
     domain::repositories::profile_repo::ProfileRepository,
     presentation::api::{
-        helpers::{app_state::AppState, security::UpdateClaims, utils::AppErrorResponse},
+        helpers::{app_error::AppErrorResponse, app_state::AppState, security::UpdateClaims},
         requests::update_profile_request::UpdateProfileRequest,
     },
 };
