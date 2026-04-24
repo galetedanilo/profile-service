@@ -17,7 +17,10 @@ use crate::{
     infrastructure::repositories::{
         mongo_profile_repo::MongoProfileRepository, mongo_service::MongoService,
     },
-    presentation::api::helpers::{app_state::AppState, config::Config},
+    presentation::api::{
+        handlers::health_handler::health_handler,
+        helpers::{app_state::AppState, config::Config},
+    },
 };
 
 use super::handlers::{
@@ -90,6 +93,7 @@ impl Service {
 
         let app = Router::new()
             .nest("/profiles", routers)
+            .route("/health", get(health_handler))
             .with_state(state)
             .layer(TraceLayer::new_for_http())
             .layer(GovernorLayer::new(governor_conf))

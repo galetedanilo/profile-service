@@ -1,5 +1,6 @@
 pub mod create_profile_handler;
 pub mod get_profile_by_id_handler;
+pub mod health_handler;
 pub mod update_profile_by_id_handler;
 
 #[cfg(test)]

@@ -57,7 +57,7 @@ Se o build falhar, verifique se você adicionou testes para as novas funcionalid
 
 | Método   | Endpoint        | Descrição                 | Status                               |
 | :------- | :-------------- | :------------------------ | :----------------------------------- |
-| `GET`    | `/health`       | Check de saúde do sistema | 🚧 Em progresso (Application/Domain) |
+| `GET`    | `/health`       | Check de saúde do sistema | ✅ Concluído                         |
 | `POST`   | `/profiles`     | Criar um novo perfil      | ✅ Concluído                         |
 | `GET`    | `/profiles/:id` | Buscar perfil por ID      | ✅ Concluído                         |
 | `PUT`    | `/profiles/:id` | Atualizar dados do perfil | ✅ Concluído                         |
