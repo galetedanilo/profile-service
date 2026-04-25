@@ -18,6 +18,7 @@ impl<R: ProfileRepository + Send + Sync> GetProfileByIdUseCase<R> {
         Self { repository }
     }
 
+    #[tracing::instrument(name = "Get profile by ID", skip(self, input))]
     pub async fn execute(&self, input: GetProfileByIdInput) -> Result<Profile, ProfileError> {
         self.repository
             .get_profile_by_id(&input.id)

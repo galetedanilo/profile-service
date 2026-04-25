@@ -43,6 +43,7 @@ src/
 - **Serialização:** [Serde](https://serde.rs)
 - **Validação:** [Validify](https://github.com/biblius/validify)
 - **Segurança:** [Jsonwebtoken](https://docs.rs/jsonwebtoken/latest/jsonwebtoken/)
+- **Observabilidade:** [Tracing](https://tracing.rs) (Instrumentação) e [OpenTelemetry](https://opentelemetry.io) (Exportação de Telemetria)
 
 ## 🛠 Fitness Functions
 
