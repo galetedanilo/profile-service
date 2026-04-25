@@ -18,6 +18,7 @@ impl<R: ProfileRepository + Send + Sync> UpdateProfileUseCase<R> {
         Self { repository }
     }
 
+    #[tracing::instrument(name = "Update profile", skip(self, input))]
     pub async fn execute(
         &self,
         input: UpdateProfileInput,

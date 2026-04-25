@@ -46,6 +46,7 @@ impl MongoProfileRepository {
 
 #[async_trait::async_trait]
 impl ProfileRepository for MongoProfileRepository {
+    #[tracing::instrument(name = "Saving profile to MongoDB", skip(self, profile))]
     async fn save(&self, profile: &Profile) -> Result<(), ProfileRepositoryError> {
         let doc: ProfileDocument = profile.clone().into();
 
@@ -78,6 +79,7 @@ impl ProfileRepository for MongoProfileRepository {
         Ok(())
     }
 
+    #[tracing::instrument(name = "Get profile by ID to MongoDB", skip(self, id))]
     async fn get_profile_by_id(&self, id: &Id) -> Result<Option<Profile>, ProfileRepositoryError> {
         let document = self
             .collection

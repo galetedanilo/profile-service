@@ -8,6 +8,7 @@ pub struct Config {
     pub database: String,
     pub username: String,
     pub password: String,
+    pub jaeger_url: String,
 }
 
 impl Config {
@@ -20,6 +21,7 @@ impl Config {
         database: String,
         username: String,
         password: String,
+        jaeger_url: String,
     ) -> Self {
         Self {
             request_host,
@@ -30,6 +32,7 @@ impl Config {
             database,
             username,
             password,
+            jaeger_url,
         }
     }
 }

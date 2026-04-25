@@ -18,6 +18,7 @@ impl<R: ProfileRepository + Send + Sync> CreateProfileUseCase<R> {
         Self { repository }
     }
 
+    #[tracing::instrument(name = "Create new profile", skip(self, input))]
     pub async fn execute(&self, input: CreateProfileInput) -> Result<(), ProfileError> {
         if let Ok(Some(_)) = self.repository.get_profile_by_id(&input.id).await {
             return Err(ProfileError::AlreadyExists(input.id.to_string()));

@@ -11,7 +11,6 @@ use axum::{
 use jsonwebtoken::DecodingKey;
 use tower_governor::{GovernorLayer, governor::GovernorConfigBuilder};
 use tower_http::{cors::CorsLayer, trace::TraceLayer};
-use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 use crate::{
     infrastructure::repositories::{
@@ -19,7 +18,7 @@ use crate::{
     },
     presentation::api::{
         handlers::health_handler::health_handler,
-        helpers::{app_state::AppState, config::Config},
+        helpers::{app_state::AppState, config::Config, telemetry_config::init_telemetry},
     },
 };
 
@@ -44,15 +43,14 @@ impl Service {
             std::env::var("MONGO_DATABASE").expect("MONGO_DATABASE must be set"),
             std::env::var("MONGO_USERNAME").expect("MONGO_USERNAME must be set"),
             std::env::var("MONGO_PASSWORD").expect("MONGO_PASSWORD must be set"),
+            std::env::var("JAEGER_URL").expect("JAEGER_URL must be set"),
         );
 
         Service { config }
     }
 
     pub async fn run(&self) -> anyhow::Result<()> {
-        tracing_subscriber::registry()
-            .with(tracing_subscriber::fmt::layer())
-            .init();
+        init_telemetry(&self.config.jaeger_url)?;
 
         let cors_layer = CorsLayer::new()
             .allow_methods([Method::GET, Method::POST, Method::PUT])
